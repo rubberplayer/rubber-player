@@ -1,3 +1,6 @@
+#ifndef INCLUDE_SOUND
+#define INCLUDE_SOUND 1
+
 #include <sndfile.h>
 #include <string>
 class Sound
@@ -10,3 +13,4 @@ public:
   float *ptr;
   void load(std::string path);
 };
+#endif

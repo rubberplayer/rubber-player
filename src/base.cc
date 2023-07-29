@@ -11,7 +11,7 @@
 #include "./player.h"
 #include "./name.h"
 #include "./sound.h"
-
+#include "./waveform.h"
 //////////////////////////////////
 
 class MainWindow : public Gtk::Window
@@ -19,11 +19,13 @@ class MainWindow : public Gtk::Window
 public:
   MainWindow();
 
+  Waveform m_Waveform;
 
 
   void on_drawingarea_checkerboard_draw(const Cairo::RefPtr<Cairo::Context> &cr, int width, int height);
   Gtk::Box m_VBox;
   Gtk::Frame m_Frame_Checkerboard;
+  Gtk::Frame m_Frame_Waveform;
   Gtk::DrawingArea m_DrawingArea_Checkerboard;
   Gtk::Label m_Label_Checkerboard;
 
@@ -56,11 +58,23 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
                            m_Button_stop("stop", true),
                            m_Button_load("load", true)
 {
+
+  sound.load("/home/vivien/Bureau/redhouse-clip-mono-short.flac");
+  m_Waveform.set_sound(sound);
+
   set_title(APPLICATION_NAME);
   set_default_size(200, 200);
 
   m_VBox.set_margin(16);
   set_child(m_VBox);
+
+  m_VBox.append(m_Frame_Waveform);
+  m_Waveform.set_content_width(100);
+  m_Waveform.set_content_height(100);
+  m_Waveform.set_expand();
+  
+  m_Frame_Waveform.set_child(m_Waveform);
+
 
   m_VBox.append(m_Frame_Checkerboard);
 
@@ -98,7 +112,7 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
 
   m_DrawingArea_Checkerboard.signal_resize().connect(
       sigc::mem_fun(*this, &MainWindow::on_drawingarea_scribble_resize));
-  sound.load("/home/vivien/Bureau/redhouse-clip-mono-short.flac");
+  
   draw_sound(sound);
 }
 void MainWindow::draw_sound(Sound some_sound)

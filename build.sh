@@ -1,4 +1,4 @@
-g++ base.cc player.cc sound.cc -o base \
+g++ src/base.cc src/player.cc src/sound.cc src/waveform.cc -o base \
     `pkg-config --cflags --libs gtkmm-4.0` \
     `pkg-config --cflags --libs cairo` \
     `pkg-config --cflags --libs libpulse-simple` \
