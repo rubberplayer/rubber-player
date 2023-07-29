@@ -25,3 +25,10 @@ void Sound::load(std::string ppath)
   // player.play_some(ptr, read_count * sizeof(float));
   sf_close(sndfile);
 };
+
+bool Sound::is_loaded(){
+  return (sndfile != NULL);
+}
+sf_count_t Sound::get_frame_count(){
+  return read_count;
+}

@@ -59,7 +59,8 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
                            m_Button_load("load", true)
 {
 
-  sound.load("/home/vivien/Bureau/redhouse-clip-mono-short.flac");
+//  sound.load("/home/vivien/Bureau/redhouse-clip-mono-short.flac");
+  sound.load("/home/vivien/Bureau/redhouse-clip-mono.flac");
   m_Waveform.set_sound(sound);
 
   set_title(APPLICATION_NAME);

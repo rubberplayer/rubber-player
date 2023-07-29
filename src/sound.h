@@ -12,5 +12,7 @@ public:
   sf_count_t read_count;
   float *ptr;
   void load(std::string path);
+  bool is_loaded();
+  sf_count_t get_frame_count();
 };
 #endif
