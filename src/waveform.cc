@@ -14,6 +14,7 @@ Waveform::Waveform()
     add_controller(m_Drag_selection);
 
     selection_hot_handle = SelectionHotHandle::NONE;
+    proximity_hot_handle = SelectionHotHandle::NONE;
     m_Drag_selection->signal_drag_begin().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_selection_begin));
     m_Drag_selection->signal_drag_update().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_selection_update));
     m_Drag_selection->signal_drag_end().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_selection_end));
@@ -73,8 +74,13 @@ void Waveform::on_mouse_enter(double x, double y)
 }
 void Waveform::on_mouse_motion(double x, double y)
 {
+
     mouse_x = x;
     mouse_y = y;
+
+    proximity_hot_handle = closest_hot_handle(x);
+    m_selection_surface_dirty = true;
+
     m_text_surface_dirty = true;
     queue_draw();
 }
@@ -227,6 +233,25 @@ void Waveform::draw_selection()
 
     cr->rectangle(left, 0, right - left, sh);
     cr->fill();
+
+    cr->set_source_rgba(1.0, 1.0, 1.0, 0.9);
+    if (proximity_hot_handle != Waveform::NONE)
+    {
+        float half_radius = 6.0;
+        float half_separation = 8.0;
+        // float y = mouse_y;             // moves with cursor
+        float y = sh / 2.0; // fixed in the v middle
+        float x = (proximity_hot_handle == Waveform::START) ? left : right;
+        // cr->rectangle(left - half_radius, mouse_y - half_radius, 2 * half_radius, 2 * half_radius);
+        cr->move_to(x + half_separation, y - half_radius);
+        cr->line_to(x + half_separation + half_radius, y);
+        cr->line_to(x + half_separation, y + half_radius);
+        cr->fill();
+        cr->move_to(x - half_separation, y - half_radius);
+        cr->line_to(x - half_separation - half_radius, y);
+        cr->line_to(x - half_separation, y + half_radius);
+        cr->fill();
+    }
 }
 void Waveform::draw_sound()
 {
@@ -293,7 +318,7 @@ Waveform::SelectionHotHandle Waveform::closest_hot_handle(double x)
 void Waveform::on_drawingarea_drag_selection_begin(double start_x, double start_y)
 {
     selection_hot_handle = closest_hot_handle(start_x);
-    
+
     switch (selection_hot_handle)
     {
     case SelectionHotHandle::START:
@@ -309,7 +334,7 @@ void Waveform::on_drawingarea_drag_selection_begin(double start_x, double start_
     case SelectionHotHandle::NONE:
         set_selection_bounds(get_frame_number_at(start_x), get_frame_number_at(start_x));
         break;
-    }    
+    }
 }
 
 void Waveform::on_drawingarea_drag_selection_update(double offset_x, double offset_y)

@@ -44,6 +44,7 @@ public:
         END,
     } SelectionHotHandle;
     SelectionHotHandle selection_hot_handle;
+    SelectionHotHandle proximity_hot_handle;
 
     SelectionHotHandle closest_hot_handle(double x);
 
