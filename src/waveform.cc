@@ -196,29 +196,18 @@ void Waveform::on_drawingarea_drag_selection_begin(double start_x, double start_
 
 void Waveform::on_drawingarea_drag_selection_update(double offset_x, double offset_y)
 {
-    set_selection_bounds(selection_start, selection_start + get_frame_number_at(offset_x));
+    set_selection_bounds(selection_start, selection_start + get_frame_number_at(offset_x)-get_frame_number_at((long)0));
     draw_all();
     queue_draw();
 }
 
 void Waveform::on_drawingarea_drag_selection_end(double offset_x, double offset_y)
 {
-    if (sound.read_count > 0)
-    {
-        // printf("Waveform::on_drawingarea_scribble_drag_end %f,%f\n", offset_x, offset_y);
-        selection_end = selection_start + get_frame_number_at(offset_x);
-        set_selection_bounds(selection_start, selection_start + get_frame_number_at(offset_x));
-    }
-    // printf("selection is now %d,%d\n", selection_start, selection_end);
-    //  scribble_draw_brush(m_start_x + offset_x, m_start_y + offset_y);
+    set_selection_bounds(selection_start, selection_start + get_frame_number_at(offset_x)-get_frame_number_at((long)0));
+    draw_all();
+    queue_draw();
 }
-/*
-void Waveform::on_gesture_zoom_scale_changed(double scale)
-{
-    printf("here is scale %f\n", scale);
-    // m_GestureZoom->get_scale_delta()
-}
-*/
+
 
 void Waveform::set_selection_bounds(int _selection_start, int _selection_end)
 {
@@ -254,13 +243,11 @@ void Waveform::zoom_around(long frame, bool zoom_out)
 {
     long frames_at_left = frame - visible_start;
     long frames_at_right = visible_end - frame;
-    printf("zoom %s\n", zoom_out ? "out" : "in");
     double factor = zoom_out ? 2.0 : 0.5;
     double new_frames_at_left;
     double new_frames_at_right;
     if (zoom_out && ((frames_at_right - frames_at_left) == 0))
     {
-        printf("special case %d,%d\n", frames_at_left, frames_at_right);
         double w = get_width();
         double wl = frames_at_left / std::max((long)1, (visible_end - visible_start));
         double wr = 1 - wl;
