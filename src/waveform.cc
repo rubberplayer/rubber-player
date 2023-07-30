@@ -13,6 +13,7 @@ Waveform::Waveform()
     m_Drag_selection->set_button(GDK_BUTTON_PRIMARY);
     add_controller(m_Drag_selection);
 
+    selection_hot_handle = SelectionHotHandle::NONE;
     m_Drag_selection->signal_drag_begin().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_selection_begin));
     m_Drag_selection->signal_drag_update().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_selection_update));
     m_Drag_selection->signal_drag_end().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_selection_end));
@@ -52,8 +53,8 @@ Waveform::Waveform()
 
 bool Waveform::on_vbl_timeout()
 {
-    //long position = hack_sound_position->load();
-    //printf("position %d\n", position);
+    // long position = hack_sound_position->load();
+    // printf("position %d\n", position);
     m_position_surface_dirty = true;
     queue_draw();
     return true;
@@ -189,8 +190,7 @@ void Waveform::draw_text()
 void Waveform::draw_position()
 {
     m_position_surface_dirty = false;
-    
-    
+
     auto cr = Cairo::Context::create(m_position_surface);
     cr->set_operator(Cairo::Context::Operator::CLEAR);
     cr->paint();
@@ -206,7 +206,6 @@ void Waveform::draw_position()
     cr->set_source_rgba(1.0, 1.0, 1.0, 1.0);
     cr->rectangle(left, 0, 1, sh);
     cr->fill();
-
 }
 void Waveform::draw_selection()
 {
@@ -272,19 +271,71 @@ void Waveform::draw_sound()
         cr->fill();
     }
 }
+
+Waveform::SelectionHotHandle Waveform::closest_hot_handle(double x)
+{
+    double selection_start_pixel = get_pixel_at(selection_start);
+    double distance_to_selection_start_pixel = std::abs(x - selection_start_pixel);
+
+    double selection_end_pixel = get_pixel_at(selection_end);
+    double distance_to_selection_end_pixel = std::abs(x - selection_end_pixel);
+
+    double max_grab_distance = 10.0;
+
+    if ((distance_to_selection_start_pixel < distance_to_selection_end_pixel) && (distance_to_selection_start_pixel < max_grab_distance))
+        return SelectionHotHandle::START;
+    else if ((distance_to_selection_end_pixel <= distance_to_selection_start_pixel) && (distance_to_selection_end_pixel < max_grab_distance))
+        return SelectionHotHandle::END;
+    else
+        return SelectionHotHandle::NONE;
+}
+
 void Waveform::on_drawingarea_drag_selection_begin(double start_x, double start_y)
 {
-    set_selection_bounds(get_frame_number_at(start_x), get_frame_number_at(start_x));
+    selection_hot_handle = closest_hot_handle(start_x);
+    
+    switch (selection_hot_handle)
+    {
+    case SelectionHotHandle::START:
+        set_selection_bounds(get_frame_number_at(start_x), selection_end);
+        hot_handle_initial_position = selection_start;
+        break;
+
+    case SelectionHotHandle::END:
+        set_selection_bounds(selection_start, get_frame_number_at(start_x));
+        hot_handle_initial_position = selection_end;
+        break;
+
+    case SelectionHotHandle::NONE:
+        set_selection_bounds(get_frame_number_at(start_x), get_frame_number_at(start_x));
+        break;
+    }    
 }
 
 void Waveform::on_drawingarea_drag_selection_update(double offset_x, double offset_y)
 {
-    set_selection_bounds(selection_start, selection_start + get_frame_number_at(offset_x) - get_frame_number_at((long)0));
+
+    long d_position = get_frame_number_at(offset_x) - get_frame_number_at((long)0);
+    switch (selection_hot_handle)
+    {
+    case SelectionHotHandle::START:
+        set_selection_bounds(hot_handle_initial_position + d_position, selection_end);
+        break;
+
+    case SelectionHotHandle::END:
+        set_selection_bounds(selection_start, hot_handle_initial_position + d_position);
+        break;
+
+    case SelectionHotHandle::NONE:
+        set_selection_bounds(selection_start, selection_start + d_position);
+        break;
+    }
 }
 
 void Waveform::on_drawingarea_drag_selection_end(double offset_x, double offset_y)
 {
-    set_selection_bounds(selection_start, selection_start + get_frame_number_at(offset_x) - get_frame_number_at((long)0));
+    /// set_selection_bounds(selection_start, selection_start + get_frame_number_at(offset_x) - get_frame_number_at((long)0));
+    selection_hot_handle = SelectionHotHandle::NONE;
 }
 
 void Waveform::set_selection_bounds(int _selection_start, int _selection_end)

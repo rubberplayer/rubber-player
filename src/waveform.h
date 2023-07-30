@@ -37,7 +37,17 @@ public:
     void on_drawingarea_drag_selection_begin(double start_x, double start_y);
     void on_drawingarea_drag_selection_update(double offset_x, double offset_y);
     void on_drawingarea_drag_selection_end(double offset_x, double offset_y);
+    typedef enum
+    {
+        NONE,
+        START,
+        END,
+    } SelectionHotHandle;
+    SelectionHotHandle selection_hot_handle;
 
+    SelectionHotHandle closest_hot_handle(double x);
+
+    long hot_handle_initial_position;
     // bool has_selection;
     long selection_start;
     long selection_end;
