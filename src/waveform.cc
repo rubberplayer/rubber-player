@@ -2,6 +2,10 @@
 
 Waveform::Waveform()
 {
+    // hack
+    hack_sound_start = NULL;
+    hack_sound_end = NULL;
+
     signal_resize().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_scribble_resize));
     set_draw_func(sigc::mem_fun(*this, &Waveform::on_drawingarea_checkerboard_draw));
 
@@ -36,6 +40,8 @@ Waveform::Waveform()
     m_Mousemotion->signal_motion().connect(sigc::mem_fun(*this, &Waveform::on_mouse_motion));
     m_Mousemotion->signal_enter().connect(sigc::mem_fun(*this, &Waveform::on_mouse_enter));
     m_Mousemotion->signal_leave().connect(sigc::mem_fun(*this, &Waveform::on_mouse_leave));
+
+    
 }
 void Waveform::on_mouse_leave()
 {
@@ -209,6 +215,10 @@ void Waveform::set_selection_bounds(int _selection_start, int _selection_end)
 {
     selection_start = std::clamp(_selection_start, 0, (int)sound.read_count - 1);
     selection_end = std::clamp(_selection_end, 0, (int)sound.read_count - 1);
+
+    if (hack_sound_start != NULL) hack_sound_start->store(selection_start);
+    if (hack_sound_end != NULL ) hack_sound_end->store(selection_end);
+
 }
 
 void Waveform::on_drawingarea_scroll_begin()
@@ -261,4 +271,10 @@ void Waveform::zoom_around(long frame, bool zoom_out)
 
     draw_all();
     queue_draw();
+}
+// hack
+void Waveform::set_hack_sound_start_sound_end(std::atomic<long> *s, std::atomic<long> *e)
+{
+    hack_sound_start = s;
+    hack_sound_end = e;
 }

@@ -6,25 +6,29 @@
 
 Player::~Player()
 {
-    terminate_the_play_thread.store(true);
-    the_play_thread.join();
+    m_terminate_the_play_thread.store(true);
+    m_the_play_thread.join();
     pa_simple_free(this->s);
     delete rubberBandStretcher;
 }
 
 Player::Player()
 {
-    play_started.store(false);
-    terminate_the_play_thread.store(false);
+    set_pitch_scale(1);
+    set_sound_start(0);
+    set_sound_end(0);
+    m_play_started.store(false);
+    m_terminate_the_play_thread.store(false);
+    //  RubberBand::RubberBandStretcher::Options rubberband_options = RubberBand::RubberBandStretcher::DefaultOptions | RubberBand::RubberBandStretcher::OptionProcessOffline;
+    RubberBand::RubberBandStretcher::Options rubberband_options = RubberBand::RubberBandStretcher::DefaultOptions | RubberBand::RubberBandStretcher::OptionProcessRealTime;
+    rubberBandStretcher = new RubberBand::RubberBandStretcher(48000, 1, rubberband_options);
 
-    rubberBandStretcher = new RubberBand::RubberBandStretcher(48000, 1,
-                                                              RubberBand::RubberBandStretcher::DefaultOptions | RubberBand::RubberBandStretcher::OptionProcessOffline);
     printf("RubberBand engine version : %d\n", rubberBandStretcher->getEngineVersion());
     printf("RubberBand engine channel count : %d\n", rubberBandStretcher->getChannelCount());
     connect_to_pulseaudio();
 
-    the_play_thread = std::thread([this]
-                                  { play_always(); });
+    m_the_play_thread = std::thread([this]
+                                    { play_always(); });
 }
 void Player::connect_to_pulseaudio()
 {
@@ -151,13 +155,14 @@ void Player::play_always()
     using namespace std::chrono_literals;
     for (;;)
     {
-        if (terminate_the_play_thread.load() == true)
+        if (m_terminate_the_play_thread.load() == true)
         {
             return;
         }
-        if (play_started.load() == true)
+        if (m_play_started.load() == true)
         {
-            printf("yoyoyo\n");
+            printf("sound samplerate : %d ; selection [%d,%d], pitch scale : %f \n",
+                   m_sound->sfinfo.samplerate, m_sound_start.load(), m_sound_end.load(), m_pitch_scale.load());
         }
         std::this_thread::sleep_for(500ms);
     }
@@ -179,12 +184,31 @@ void Player::play_always()
 void Player::start_playing()
 {
     printf("Player::start_playing\n");
-    play_started.store(true);
+    m_play_started.store(true);
 }
 
 void Player::stop_playing()
 {
     printf("Player::stop_playing\n");
-    play_started.store(false);
+    m_play_started.store(false);
 }
 
+void Player::set_sound(Sound *_sound)
+{
+    stop_playing();
+    m_sound = _sound;
+    set_sound_start(0);
+    set_sound_end(m_sound->get_frame_count());
+}
+void Player::set_pitch_scale(double pitch_scale)
+{
+    m_pitch_scale.store(pitch_scale);
+}
+void Player::set_sound_start(long sound_start)
+{
+    m_sound_start.store(sound_start);
+}
+void Player::set_sound_end(long sound_end)
+{
+    m_sound_end.store(sound_end);
+}
