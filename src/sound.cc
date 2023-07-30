@@ -15,6 +15,7 @@ void Sound::load(std::string ppath)
     printf("SF_INFO :\n-samplerate %d\n-channels %d\n-format %b\n-sections %d\n-seekable %d\n",
            sfinfo.samplerate, sfinfo.channels, sfinfo.format, sfinfo.sections, sfinfo.seekable);
   }
+  
   int frames = 48000 * 4000;
   int samples = frames * sfinfo.channels;
   ptr = (float *)malloc(samples * sizeof(float));
@@ -26,9 +27,11 @@ void Sound::load(std::string ppath)
   sf_close(sndfile);
 };
 
-bool Sound::is_loaded(){
+bool Sound::is_loaded()
+{
   return (sndfile != NULL);
 }
-sf_count_t Sound::get_frame_count(){
+sf_count_t Sound::get_frame_count()
+{
   return read_count;
 }
