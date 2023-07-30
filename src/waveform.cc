@@ -13,29 +13,14 @@ Waveform::Waveform()
     m_Drag_selection->signal_drag_update().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_selection_update));
     m_Drag_selection->signal_drag_end().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_selection_end));
 
-    m_Drag_zoom = Gtk::GestureDrag::create();
-    m_Drag_zoom->set_button(GDK_BUTTON_MIDDLE);
-    add_controller(m_Drag_zoom);
-
-    m_Drag_zoom->signal_drag_begin().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_zoom_begin));
-    m_Drag_zoom->signal_drag_update().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_zoom_update));
-    m_Drag_zoom->signal_drag_end().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_zoom_end));
-
     // has_selection = false;
     set_selection_bounds(0, 0);
-    zoom = 1;
-    /*
-        m_GestureZoom = Gtk::GestureZoom::create();
-        m_GestureZoom->set_propagation_phase(Gtk::PropagationPhase::BUBBLE);
-        m_GestureZoom->signal_scale_changed().connect(sigc::mem_fun(*this, &Waveform::on_gesture_zoom_scale_changed));
-        add_controller(m_GestureZoom);
-        */
 
     m_Scroll = Gtk::EventControllerScroll::create();
     m_Scroll->set_flags(Gtk::EventControllerScroll::Flags::BOTH_AXES);
     add_controller(m_Scroll);
     m_Scroll->signal_scroll_begin().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_scroll_begin));
-    m_Scroll->signal_scroll().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_scroll),true);
+    m_Scroll->signal_scroll().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_scroll), true);
 
     m_Keypressed = Gtk::EventControllerKey::create();
     add_controller(m_Keypressed);
@@ -68,6 +53,8 @@ void Waveform::on_mouse_motion(double x, double y)
 {
     mouse_x = x;
     mouse_y = y;
+    draw_all();
+    queue_draw();
     // printf("mouse motion, %f, %f\n",x,y);
 }
 
@@ -79,6 +66,8 @@ bool Waveform::on_key_pressed(const unsigned int a, const unsigned int b, const 
 void Waveform::set_sound(Sound _sound)
 {
     sound = _sound;
+    visible_start = 0;
+    visible_end = sound.get_frame_count();
 }
 void Waveform::on_drawingarea_scribble_resize(int width, int height)
 {
@@ -121,13 +110,25 @@ void Waveform::draw_text()
     float left_s = ((float)selection_start) / (float)sound.sfinfo.samplerate;
     float right_s = ((float)selection_end) / (float)sound.sfinfo.samplerate;
     float margin_top = font_size * 1.1;
+    float line_height = font_size;
     float margin_left = 5;
+
+    float pos_y = margin_top;
+
     cr->set_font_size(font_size);
     cr->set_source_rgb(1.0, 1.0, 1.0);
-    cr->move_to(margin_left, margin_top);
+    cr->move_to(margin_left, pos_y);
     cr->show_text(std::to_string(left_s) + " s");
-    cr->move_to(margin_left, margin_top + font_size);
+    pos_y += line_height;
+
+    cr->move_to(margin_left, pos_y);
     cr->show_text(std::to_string(right_s) + " s");
+    pos_y += line_height;
+
+    float mouse_s = (float)get_frame_number_at(mouse_x) / (float)sound.sfinfo.samplerate;
+    cr->move_to(margin_left, pos_y);
+    cr->show_text(std::to_string(mouse_s) + " s");
+    pos_y += line_height;
 }
 void Waveform::draw_selection()
 {
@@ -137,9 +138,8 @@ void Waveform::draw_selection()
 
     cr->set_source_rgba(0.3, 0.8, 0.7, 0.5);
     // cr->set_source_rgba(rand() / double(RAND_MAX), rand() / double(RAND_MAX), rand() / double(RAND_MAX),0.5);
-
-    int left = selection_start / ((float)sound.get_frame_count()) * (float)sw;
-    int right = selection_end / ((float)sound.get_frame_count()) * (float)sw;
+    double left = get_pixel_at(selection_start);
+    double right = get_pixel_at(selection_end);
 
     cr->rectangle(left, 0, right - left, sh);
     cr->fill();
@@ -162,9 +162,56 @@ void Waveform::draw_sound()
     cr->set_source_rgb(rand() / double(RAND_MAX), rand() / double(RAND_MAX), rand() / double(RAND_MAX));
     cr->set_source_rgb(1.0, 0.5, 0.25);
 
-    int method = (sw > sound.get_frame_count()) ? (-1) : 1;
-
-    if (method == 0)
+    // int method = (sw > sound.get_frame_count()) ? (-1) : 1;
+    int method = -2;
+    if (method == -2)
+    {
+        double visible_frames = (double)(visible_end - visible_start);
+        for (int i = 0; i < sw; i++)
+        {
+            long p0 = visible_start + (long)(((double)i / (double)sw) * visible_frames);
+            long p1;
+            if (i == (sw - 1))
+            {
+                p1 = visible_end;
+            }
+            else
+            {
+                p1 = visible_start + (long)(((double)(i + 1) / (double)sw) * visible_frames);
+            }
+            float max = -1;
+            float min = 1;
+            for (int j = p0; j <= p1; j++)
+            {
+                float value = sound.ptr[j];
+                max = std::max(max, value);
+                min = std::min(min, value);
+            }
+             int x = i;
+            int height = std::max(1.0, (((max - min)) / 2.0) * sh);
+            int width = 1;
+            cr->rectangle(
+                x,
+                ((min + 1.0) / 2.0) * sh,
+                width,
+                height);
+            cr->fill();
+        }
+    }
+    else if (method = 666)
+    {
+        double visible_frames = (double)(visible_end - visible_start);
+        for (int i = 0; i < sw; i++)
+        {
+            long p = visible_start + (long)(((double)i / (double)sw) * visible_frames);
+            float value = sound.ptr[p];
+            int x = i;
+            int y = (value + 1.0) / 2.0 * (float)sh;
+            cr->rectangle(x, y, 1, 1);
+            cr->fill();
+        }
+    }
+    else if (method == 0)
     {
         for (int i = 0; i < sound.read_count; i++)
         {
@@ -263,10 +310,6 @@ void Waveform::draw_sound()
       cr->fill();
       */
 }
-int Waveform::get_frame_number_at(double offset_x)
-{
-    return ((float)sound.get_frame_count() * (offset_x) / get_width());
-}
 void Waveform::on_drawingarea_drag_selection_begin(double start_x, double start_y)
 {
     set_selection_bounds(get_frame_number_at(start_x), get_frame_number_at(start_x));
@@ -313,35 +356,53 @@ void Waveform::on_drawingarea_scroll_begin()
 }
 bool Waveform::on_drawingarea_scroll(double x, double y)
 {
-    printf("scroll\n");
+    printf("scroll %f, %f\n", x, y);
+    zoom_around(get_frame_number_at(mouse_x), (y > 0));
     return true;
 }
 
-void Waveform::set_zoom_center(int x, int y)
+long Waveform::get_frame_number_at(double offset_x)
 {
-    // zoom_center_x = get_frame_number_at(start_x);
-    // zoom_at_start = zoom;
-    /*zoom_center_y = y;*/
+    double wr = offset_x / get_width();
+    double wf = ((double)(visible_end - visible_start)) * wr;
+    return visible_start + (long)wf;
 }
+double Waveform::get_pixel_at(long frame)
+{
+    double r = ((double)(frame - visible_start)) / ((double)(visible_end - visible_start));
+    double x = r * get_width();
+    return x;
+}
+void Waveform::zoom_around(long frame, bool zoom_out)
+{
+    long frames_at_left = frame - visible_start;
+    long frames_at_right = visible_end - frame;
+    printf("zoom %s\n", zoom_out ? "out" : "in");
+    double factor = zoom_out ? 2.0 : 0.5;
+    double new_frames_at_left;
+    double new_frames_at_right;
+    if (zoom_out && ((frames_at_right - frames_at_left) == 0))
+    {
+        printf("special case %d,%d\n", frames_at_left, frames_at_right);
+        double w = get_width();
+        double wl = frames_at_left / std::max((long)1, (visible_end - visible_start));
+        double wr = 1 - wl;
+        new_frames_at_left = w * wl;
+        new_frames_at_right = w * wr;
+    }
+    else
+    {
+        new_frames_at_left = factor * (double)frames_at_left;
+        new_frames_at_right = factor * (double)frames_at_right;
+    }
+    long new_left = frame - (long)new_frames_at_left;
+    long new_right = frame + (long)new_frames_at_right;
 
-void Waveform::on_drawingarea_drag_zoom_begin(double start_x, double start_y)
-{
-    /*
-        float n_frames = (float)sound.get_frame_count();
-        float w_v = get_width();
-        float max_zoom = n_frames / w_v;
-    */
+    visible_start = std::max((long)0, new_left);
+    visible_end = std::min(new_right, (long)sound.get_frame_count());
 
-    zoom_center_x = get_frame_number_at(start_x);
-    zoom_at_start = zoom;
-    // set_zoom_center(int x, int y)
-    printf("A\n");
-}
-void Waveform::on_drawingarea_drag_zoom_update(double offset_x, double offset_y)
-{
-    printf("B %f %f %d %d\n", offset_x, offset_y, get_width(), get_height());
-}
-void Waveform::on_drawingarea_drag_zoom_end(double offset_x, double offset_y)
-{
-    printf("C\n");
+    draw_all();
+    queue_draw();
+
+    printf("[%d,%d]\n", visible_start, visible_end);
 }
