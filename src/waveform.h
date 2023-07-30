@@ -7,6 +7,8 @@ public:
     Waveform();
     int id;
     Cairo::RefPtr<Cairo::ImageSurface> m_waveform_surface;
+    Cairo::RefPtr<Cairo::ImageSurface> m_text_surface;
+    Cairo::RefPtr<Cairo::ImageSurface> m_selection_surface;
 
     void on_drawingarea_resize(int width, int height);
     void create_draw_surface();

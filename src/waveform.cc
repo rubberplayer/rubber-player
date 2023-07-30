@@ -86,14 +86,32 @@ void Waveform::on_drawingarea_resize(int width, int height)
 }
 void Waveform::create_draw_surface()
 {
-    m_waveform_surface = Cairo::ImageSurface::create(Cairo::Surface::Format::ARGB32, get_width(), get_height());
-    auto cr = Cairo::Context::create(m_waveform_surface);
-    cr->set_source_rgb(0, 0, 0);
-    cr->paint();
+    {
+        m_waveform_surface = Cairo::ImageSurface::create(Cairo::Surface::Format::ARGB32, get_width(), get_height());
+        auto cr = Cairo::Context::create(m_waveform_surface);
+        cr->set_source_rgb(0, 0, 0);
+        cr->paint();
+    }
+    {
+        m_text_surface = Cairo::ImageSurface::create(Cairo::Surface::Format::ARGB32, get_width(), get_height());
+        auto cr = Cairo::Context::create(m_text_surface);
+        cr->set_source_rgba(0, 0, 0, 0.0);
+        cr->paint();
+    }
+    {
+        m_selection_surface = Cairo::ImageSurface::create(Cairo::Surface::Format::ARGB32, get_width(), get_height());
+        auto cr = Cairo::Context::create(m_selection_surface);
+        cr->set_source_rgba(0, 0, 0, 0.0);
+        cr->paint();
+    }
 }
 void Waveform::on_drawingarea_draw(const Cairo::RefPtr<Cairo::Context> &cr, int width, int height)
 {
     cr->set_source(m_waveform_surface, 0, 0);
+    cr->paint();
+    cr->set_source(m_text_surface, 0, 0);
+    cr->paint();
+    cr->set_source(m_selection_surface, 0, 0);
     cr->paint();
 }
 void Waveform::draw_all()
@@ -105,7 +123,7 @@ void Waveform::draw_all()
 }
 void Waveform::draw_text()
 {
-    auto cr = Cairo::Context::create(m_waveform_surface);
+    auto cr = Cairo::Context::create(m_text_surface);
     float font_size = 12.0;
     /*auto sw = m_waveform_surface->get_width();
     auto sh = m_waveform_surface->get_height();
@@ -138,7 +156,7 @@ void Waveform::draw_text()
 }
 void Waveform::draw_selection()
 {
-    auto cr = Cairo::Context::create(m_waveform_surface);
+    auto cr = Cairo::Context::create(m_selection_surface);
     auto sw = m_waveform_surface->get_width();
     auto sh = m_waveform_surface->get_height();
 
