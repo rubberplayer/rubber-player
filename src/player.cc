@@ -202,7 +202,7 @@ void Player::play_always()
             position = selection_left;
 
         void *sound_pointer = m_sound->ptr + position;
-        long block_size = 48000 * 4; // 256;
+        long block_size = 256*4;//48000 * 4; // 256;
         int error;
 
         if ((position + block_size) >= selection_right)

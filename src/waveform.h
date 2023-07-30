@@ -10,6 +10,10 @@ public:
     Cairo::RefPtr<Cairo::ImageSurface> m_text_surface;
     Cairo::RefPtr<Cairo::ImageSurface> m_selection_surface;
 
+    bool m_waveform_surface_dirty;
+    bool m_text_surface_dirty;
+    bool m_selection_surface_dirty;
+
     void on_drawingarea_resize(int width, int height);
     void create_draw_surface();
     void on_drawingarea_draw(const Cairo::RefPtr<Cairo::Context> &cr, int width, int height);
