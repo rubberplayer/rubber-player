@@ -21,13 +21,11 @@ public:
     void draw_text();
     void draw_all();
 
-    int scale;
+    Glib::RefPtr<Gtk::GestureDrag> m_Drag_selection;
 
-    Glib::RefPtr<Gtk::GestureDrag> m_drag;
-
-    void on_drawingarea_scribble_drag_begin(double start_x, double start_y);
-    void on_drawingarea_scribble_drag_update(double offset_x, double offset_y);
-    void on_drawingarea_scribble_drag_end(double offset_x, double offset_y);
+    void on_drawingarea_drag_selection_begin(double start_x, double start_y);
+    void on_drawingarea_drag_selection_update(double offset_x, double offset_y);
+    void on_drawingarea_drag_selection_end(double offset_x, double offset_y);
 
     // bool has_selection;
     int selection_start;
@@ -36,5 +34,30 @@ public:
     int get_frame_number_at(double offset_x);
 
     Glib::RefPtr<Gtk::GestureZoom> m_GestureZoom;
-    // void on_gesture_zoom_scale_changed(double scale);
+
+    Glib::RefPtr<Gtk::GestureDrag> m_Drag_zoom;
+    void on_drawingarea_drag_zoom_begin(double start_x, double start_y);
+    void on_drawingarea_drag_zoom_update(double offset_x, double offset_y);
+    void on_drawingarea_drag_zoom_end(double offset_x, double offset_y);
+
+    int zoom_center_x;
+    int zoom_center_y;
+
+    void set_zoom_center(int x, int y);
+    float zoom;
+    float zoom_at_start;
+
+    Glib::RefPtr<Gtk::EventControllerKey> m_Keypressed;
+    bool on_key_pressed(const unsigned int a, const unsigned int b, const Gdk::ModifierType c);
+
+    Glib::RefPtr<Gtk::EventControllerMotion> m_Mousemotion;
+    void on_mouse_motion(double x, double y);
+    void on_mouse_leave();
+    void on_mouse_enter(double x, double y);
+    bool mouse_inside;
+    double mouse_x, mouse_y;
+
+    Glib::RefPtr<Gtk::EventControllerScroll> m_Scroll;
+    void on_drawingarea_scroll_begin();
+    bool on_drawingarea_scroll(double x, double y);
 };

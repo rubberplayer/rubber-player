@@ -14,6 +14,10 @@
 #include "./waveform.h"
 //////////////////////////////////
 
+///
+/// https://docs.gtk.org/gtk4/class.FileDialog.html since 4.10
+///
+
 class MainWindow : public Gtk::Window
 {
 public:
@@ -21,13 +25,12 @@ public:
 
   Waveform m_Waveform;
 
-
-  //void on_drawingarea_checkerboard_draw(const Cairo::RefPtr<Cairo::Context> &cr, int width, int height);
+  // void on_drawingarea_checkerboard_draw(const Cairo::RefPtr<Cairo::Context> &cr, int width, int height);
   Gtk::Box m_VBox;
-  //Gtk::Frame m_Frame_Checkerboard;
+  // Gtk::Frame m_Frame_Checkerboard;
   Gtk::Frame m_Frame_Waveform;
-  //Gtk::DrawingArea m_DrawingArea_Checkerboard;
-  //Gtk::Label m_Label_Checkerboard;
+  // Gtk::DrawingArea m_DrawingArea_Checkerboard;
+  // Gtk::Label m_Label_Checkerboard;
 
   Gtk::Button m_Button_play;
   void on_button_play_clicked();
@@ -48,9 +51,14 @@ public:
   void on_folder_dialog_response(int response_id, Glib::RefPtr<Gtk::FileChooserNative> &m_Dialog_open_audio_file);
 
   Cairo::RefPtr<Cairo::ImageSurface> m_surface;
-  //void draw_sound(Sound some_sound);
+  // void draw_sound(Sound some_sound);
   void on_drawingarea_scribble_resize(int width, int height);
-  void scribble_create_surface();
+  // void scribble_create_surface();
+
+  Glib::RefPtr<Gtk::EventControllerKey> m_Keypressed;
+  // void on_key_pressed(guint keyval, int keycode, Gdk::ModifierType state);
+  // bool on_key_pressed(const Gdk::Event* event);
+  bool on_key_pressed(const unsigned int a, const unsigned int b, const Gdk::ModifierType c);
 };
 
 MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
@@ -59,7 +67,7 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
                            m_Button_load("load", true)
 {
 
-//  sound.load("/home/vivien/Bureau/redhouse-clip-mono-short.flac");
+  //  sound.load("/home/vivien/Bureau/redhouse-clip-mono-short.flac");
   sound.load("/home/vivien/Bureau/redhouse-clip-mono.flac");
   m_Waveform.set_sound(sound);
 
@@ -73,9 +81,8 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
   m_Waveform.set_content_width(100);
   m_Waveform.set_content_height(100);
   m_Waveform.set_expand();
-  
-  m_Frame_Waveform.set_child(m_Waveform);
 
+  m_Frame_Waveform.set_child(m_Waveform);
 
   player.connect_to_pulseaudio();
 
@@ -99,13 +106,15 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
                                                                                &MainWindow::on_folder_dialog_response),
                                                                  m_Dialog_open_audio_file)); // <- error
 
+  m_Keypressed = Gtk::EventControllerKey::create();
+  add_controller(m_Keypressed);
 
+  m_Keypressed->signal_key_pressed().connect(sigc::mem_fun(*this, &MainWindow::on_key_pressed), false);
 }
 void MainWindow::on_button_play_clicked()
 {
   player.play_some();
 }
-
 
 int main(int argc, char *argv[])
 {
@@ -137,4 +146,15 @@ void MainWindow::on_folder_dialog_response(int response_id, Glib::RefPtr<Gtk::Fi
     printf("got a filename path %s\n", path.c_str());
   }
   m_Dialog_open_audio_file->hide();
+}
+
+bool MainWindow::on_key_pressed(const unsigned int a, const unsigned int b, const Gdk::ModifierType c)
+{
+  // void Waveform::on_key_pressed(guint keyval, int keycode, Gdk::ModifierType state){
+
+  printf("has ctrl : %d ; has shift : %d \n", c & Gdk::ModifierType::CONTROL_MASK,c & Gdk::ModifierType::SHIFT_MASK);
+
+  printf("I am here KEYRPESS %d %d  %d \n", a, b, GDK_KEY_plus);
+  // KEY_KP_Add
+  return true;
 }

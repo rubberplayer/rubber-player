@@ -5,28 +5,76 @@ Waveform::Waveform()
     signal_resize().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_scribble_resize));
     set_draw_func(sigc::mem_fun(*this, &Waveform::on_drawingarea_checkerboard_draw));
 
-    m_drag = Gtk::GestureDrag::create();
-    // m_drag->set_button(GDK_BUTTON_PRIMARY);
-    m_drag->set_button(GDK_BUTTON_MIDDLE);
-    add_controller(m_drag);
+    m_Drag_selection = Gtk::GestureDrag::create();
+    m_Drag_selection->set_button(GDK_BUTTON_PRIMARY);
+    add_controller(m_Drag_selection);
 
-    m_drag->signal_drag_begin().connect(
-        sigc::mem_fun(*this, &Waveform::on_drawingarea_scribble_drag_begin));
-    m_drag->signal_drag_update().connect(
-        sigc::mem_fun(*this, &Waveform::on_drawingarea_scribble_drag_update));
-    m_drag->signal_drag_end().connect(
-        sigc::mem_fun(*this, &Waveform::on_drawingarea_scribble_drag_end));
+    m_Drag_selection->signal_drag_begin().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_selection_begin));
+    m_Drag_selection->signal_drag_update().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_selection_update));
+    m_Drag_selection->signal_drag_end().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_selection_end));
+
+    m_Drag_zoom = Gtk::GestureDrag::create();
+    m_Drag_zoom->set_button(GDK_BUTTON_MIDDLE);
+    add_controller(m_Drag_zoom);
+
+    m_Drag_zoom->signal_drag_begin().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_zoom_begin));
+    m_Drag_zoom->signal_drag_update().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_zoom_update));
+    m_Drag_zoom->signal_drag_end().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_zoom_end));
 
     // has_selection = false;
     set_selection_bounds(0, 0);
-    scale = 1;
-
+    zoom = 1;
     /*
         m_GestureZoom = Gtk::GestureZoom::create();
         m_GestureZoom->set_propagation_phase(Gtk::PropagationPhase::BUBBLE);
         m_GestureZoom->signal_scale_changed().connect(sigc::mem_fun(*this, &Waveform::on_gesture_zoom_scale_changed));
         add_controller(m_GestureZoom);
         */
+
+    m_Scroll = Gtk::EventControllerScroll::create();
+    m_Scroll->set_flags(Gtk::EventControllerScroll::Flags::BOTH_AXES);
+    add_controller(m_Scroll);
+    m_Scroll->signal_scroll_begin().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_scroll_begin));
+    m_Scroll->signal_scroll().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_scroll),true);
+
+    m_Keypressed = Gtk::EventControllerKey::create();
+    add_controller(m_Keypressed);
+    m_Keypressed->signal_key_pressed().connect(sigc::mem_fun(*this, &Waveform::on_key_pressed), false);
+
+    m_Mousemotion = Gtk::EventControllerMotion::create();
+    add_controller(m_Mousemotion);
+    m_Mousemotion->signal_motion().connect(sigc::mem_fun(*this, &Waveform::on_mouse_motion));
+
+    mouse_inside = false;
+    m_Mousemotion = Gtk::EventControllerMotion::create();
+    add_controller(m_Mousemotion);
+    m_Mousemotion->signal_motion().connect(sigc::mem_fun(*this, &Waveform::on_mouse_motion));
+    m_Mousemotion->signal_enter().connect(sigc::mem_fun(*this, &Waveform::on_mouse_enter));
+    m_Mousemotion->signal_leave().connect(sigc::mem_fun(*this, &Waveform::on_mouse_leave));
+}
+void Waveform::on_mouse_leave()
+{
+    //   printf("mouse leave\n");
+    mouse_inside = false;
+}
+void Waveform::on_mouse_enter(double x, double y)
+{
+    mouse_inside = true;
+    mouse_x = x;
+    mouse_y = y;
+    // printf("mouse enter, %f, %f\n");
+}
+void Waveform::on_mouse_motion(double x, double y)
+{
+    mouse_x = x;
+    mouse_y = y;
+    // printf("mouse motion, %f, %f\n",x,y);
+}
+
+bool Waveform::on_key_pressed(const unsigned int a, const unsigned int b, const Gdk::ModifierType c)
+{
+    printf("I am here KEYRPESS %d %d \n", a, b);
+    return true;
 }
 void Waveform::set_sound(Sound _sound)
 {
@@ -72,12 +120,13 @@ void Waveform::draw_text()
       */
     float left_s = ((float)selection_start) / (float)sound.sfinfo.samplerate;
     float right_s = ((float)selection_end) / (float)sound.sfinfo.samplerate;
-
+    float margin_top = font_size * 1.1;
+    float margin_left = 5;
     cr->set_font_size(font_size);
     cr->set_source_rgb(1.0, 1.0, 1.0);
-    cr->move_to(5, font_size);
+    cr->move_to(margin_left, margin_top);
     cr->show_text(std::to_string(left_s) + " s");
-    cr->move_to(5, font_size * 2);
+    cr->move_to(margin_left, margin_top + font_size);
     cr->show_text(std::to_string(right_s) + " s");
 }
 void Waveform::draw_selection()
@@ -218,30 +267,21 @@ int Waveform::get_frame_number_at(double offset_x)
 {
     return ((float)sound.get_frame_count() * (offset_x) / get_width());
 }
-void Waveform::on_drawingarea_scribble_drag_begin(double start_x, double start_y)
+void Waveform::on_drawingarea_drag_selection_begin(double start_x, double start_y)
 {
-    printf("Waveform::on_drawingarea_scribble_drag_begin %f,%f\n", start_x, start_y);
-
     set_selection_bounds(get_frame_number_at(start_x), get_frame_number_at(start_x));
-
-    /*m_start_x = start_x;
-    m_start_y = start_y;
-    scribble_draw_brush(m_start_x, m_start_y);
-    */
-}
-
-void Waveform::on_drawingarea_scribble_drag_update(double offset_x, double offset_y)
-{
-    // printf("Waveform::on_drawingarea_scribble_drag_update %f,%f -> frame %d of %d\n",offset_x,offset_y,get_frame_number_at(offset_x),sound.get_frame_count());
-    // scribble_draw_brush(m_start_x + offset_x, m_start_y + offset_y);
-
-    set_selection_bounds(selection_start, selection_start + get_frame_number_at(offset_x));
-
     draw_all();
     queue_draw();
 }
 
-void Waveform::on_drawingarea_scribble_drag_end(double offset_x, double offset_y)
+void Waveform::on_drawingarea_drag_selection_update(double offset_x, double offset_y)
+{
+    set_selection_bounds(selection_start, selection_start + get_frame_number_at(offset_x));
+    draw_all();
+    queue_draw();
+}
+
+void Waveform::on_drawingarea_drag_selection_end(double offset_x, double offset_y)
 {
     if (sound.read_count > 0)
     {
@@ -262,7 +302,46 @@ void Waveform::on_gesture_zoom_scale_changed(double scale)
 
 void Waveform::set_selection_bounds(int _selection_start, int _selection_end)
 {
-    selection_start = std::clamp(_selection_start,0,(int)sound.read_count-1);
-    selection_end = std::clamp(_selection_end,0,(int)sound.read_count-1);
-    printf("selection is now %d,%d %d\n", selection_start, selection_end, sound.read_count);
+    selection_start = std::clamp(_selection_start, 0, (int)sound.read_count - 1);
+    selection_end = std::clamp(_selection_end, 0, (int)sound.read_count - 1);
+    //  printf("selection is now %d,%d %d\n", selection_start, selection_end, sound.read_count);
+}
+
+void Waveform::on_drawingarea_scroll_begin()
+{
+    printf("scroll_begin\n");
+}
+bool Waveform::on_drawingarea_scroll(double x, double y)
+{
+    printf("scroll\n");
+    return true;
+}
+
+void Waveform::set_zoom_center(int x, int y)
+{
+    // zoom_center_x = get_frame_number_at(start_x);
+    // zoom_at_start = zoom;
+    /*zoom_center_y = y;*/
+}
+
+void Waveform::on_drawingarea_drag_zoom_begin(double start_x, double start_y)
+{
+    /*
+        float n_frames = (float)sound.get_frame_count();
+        float w_v = get_width();
+        float max_zoom = n_frames / w_v;
+    */
+
+    zoom_center_x = get_frame_number_at(start_x);
+    zoom_at_start = zoom;
+    // set_zoom_center(int x, int y)
+    printf("A\n");
+}
+void Waveform::on_drawingarea_drag_zoom_update(double offset_x, double offset_y)
+{
+    printf("B %f %f %d %d\n", offset_x, offset_y, get_width(), get_height());
+}
+void Waveform::on_drawingarea_drag_zoom_end(double offset_x, double offset_y)
+{
+    printf("C\n");
 }
