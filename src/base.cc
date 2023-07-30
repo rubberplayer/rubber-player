@@ -65,7 +65,7 @@ public:
   MainWindow();
 
   Waveform m_Waveform;
-  
+
   Gtk::Box m_VBox;
 
   Gtk::Frame m_Frame_Waveform;
@@ -75,7 +75,6 @@ public:
 
   Gtk::Button m_Button_open;
   void on_button_open_clicked();
-
 
   Gtk::Box m_HBox_time_ratio;
   TimeRatioRange m_time_ratio_range;
@@ -100,8 +99,6 @@ public:
   Glib::RefPtr<Gtk::FileChooserNative> m_Dialog_open_audio_file;
   void on_folder_dialog_response(int response_id, Glib::RefPtr<Gtk::FileChooserNative> &m_Dialog_open_audio_file);
 
-
-
   Glib::RefPtr<Gtk::EventControllerKey> m_Keypressed;
   // void on_key_pressed(guint keyval, int keycode, Gdk::ModifierType state);
   // bool on_key_pressed(const Gdk::Event* event);
@@ -114,26 +111,24 @@ public:
 
 void MainWindow::set_selection_bounds(long selection_start, long selection_end)
 {
-    m_selection_start = selection_start;
-    m_selection_end = selection_end;
-    
+  m_selection_start = selection_start;
+  m_selection_end = selection_end;
 }
 
 MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
                            m_HBox_time_ratio(Gtk::Orientation::HORIZONTAL, 8),
                            m_Button_play("play", true),
                            m_Button_open("open", true)
-                           /*m_Button_load("play", true)*/
+/*m_Button_load("play", true)*/
 {
 
   //  sound.load("/home/vivien/Bureau/redhouse-clip-mono-short.flac");
   sound.load("/home/vivien/Bureau/redhouse-clip-mono.flac");
   m_Waveform.set_sound(sound);
-    player.set_sound(&sound);
+  player.set_sound(&sound);
 
-   m_Waveform.set_hack_sound_start_sound_end(&player.m_sound_start, &player.m_sound_end);
+  m_Waveform.set_hack_sound_start_sound_end_sound_position(&player.m_sound_start, &player.m_sound_end, &player.m_sound_position);
   // hack
-  
 
   set_title(APPLICATION_NAME);
   set_default_size(600, 250);
@@ -181,11 +176,11 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
 
   m_VBox.append(m_Button_play);
   m_VBox.append(m_Button_open);
-  //m_VBox.append(m_Button_load);
+  // m_VBox.append(m_Button_load);
 
   m_Button_play.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_play_clicked));
   m_Button_open.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_open_clicked));
-  //m_Button_load.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_load_clicked));
+  // m_Button_load.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_load_clicked));
 
   m_Dialog_open_audio_file = Gtk::FileChooserNative::create("Please choose a folder",
                                                             *this,

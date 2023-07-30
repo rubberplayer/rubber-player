@@ -220,6 +220,8 @@ void Player::play_always()
         }
         position += block_size;
 
+        m_sound_position.store(position);
+        
         float block_duration_ms = 1000.0 * ((float)block_size) / ((float)(m_sound->sfinfo.samplerate));
         printf("block duration %f ms\n", block_duration_ms);
         long bloc_duration_ms_long = (long)std::floor(block_duration_ms);

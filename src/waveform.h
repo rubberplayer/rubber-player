@@ -9,10 +9,12 @@ public:
     Cairo::RefPtr<Cairo::ImageSurface> m_waveform_surface;
     Cairo::RefPtr<Cairo::ImageSurface> m_text_surface;
     Cairo::RefPtr<Cairo::ImageSurface> m_selection_surface;
+    Cairo::RefPtr<Cairo::ImageSurface> m_position_surface;
 
     bool m_waveform_surface_dirty;
     bool m_text_surface_dirty;
     bool m_selection_surface_dirty;
+    bool m_position_surface_dirty;
 
     void on_drawingarea_resize(int width, int height);
     void create_draw_surface();
@@ -26,6 +28,7 @@ public:
 
     void draw_sound();
     void draw_selection();
+    void draw_position();
     void draw_text();
     void draw_all();
 
@@ -73,7 +76,8 @@ public:
     // hack
     std::atomic<long> *hack_sound_start;
     std::atomic<long> *hack_sound_end;
-    void set_hack_sound_start_sound_end(std::atomic<long> *s, std::atomic<long> *e);
+    std::atomic<long> *hack_sound_position;
+    void set_hack_sound_start_sound_end_sound_position(std::atomic<long> *s, std::atomic<long> *e, std::atomic<long> *p);
 
     //
     bool on_vbl_timeout();

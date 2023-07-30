@@ -19,8 +19,9 @@ Waveform::Waveform()
 
     // has_selection = false;
     m_waveform_surface_dirty = true;
-    m_text_surface_dirty = true;
     m_selection_surface_dirty = true;
+    m_position_surface_dirty = true;
+    m_text_surface_dirty = true;
     create_draw_surface();
 
     set_selection_bounds(0, 0);
@@ -46,11 +47,15 @@ Waveform::Waveform()
     m_Mousemotion->signal_enter().connect(sigc::mem_fun(*this, &Waveform::on_mouse_enter));
     m_Mousemotion->signal_leave().connect(sigc::mem_fun(*this, &Waveform::on_mouse_leave));
 
-    Glib::signal_timeout().connect(sigc::mem_fun(*this, &Waveform::on_vbl_timeout), 16);
+    Glib::signal_timeout().connect(sigc::mem_fun(*this, &Waveform::on_vbl_timeout), 1000 / 20);
 }
 
 bool Waveform::on_vbl_timeout()
 {
+    //long position = hack_sound_position->load();
+    //printf("position %d\n", position);
+    m_position_surface_dirty = true;
+    queue_draw();
     return true;
 }
 void Waveform::on_mouse_leave()
@@ -102,6 +107,7 @@ void Waveform::create_draw_surface()
     m_waveform_surface = Cairo::ImageSurface::create(Cairo::Surface::Format::ARGB32, get_width(), get_height());
     m_text_surface = Cairo::ImageSurface::create(Cairo::Surface::Format::ARGB32, get_width(), get_height());
     m_selection_surface = Cairo::ImageSurface::create(Cairo::Surface::Format::ARGB32, get_width(), get_height());
+    m_position_surface = Cairo::ImageSurface::create(Cairo::Surface::Format::ARGB32, get_width(), get_height());
 }
 void Waveform::on_drawingarea_draw(const Cairo::RefPtr<Cairo::Context> &cr, int width, int height)
 {
@@ -118,6 +124,12 @@ void Waveform::on_drawingarea_draw(const Cairo::RefPtr<Cairo::Context> &cr, int 
         draw_selection();
 
     cr->set_source(m_selection_surface, 0, 0);
+    cr->paint();
+
+    if (m_position_surface_dirty)
+        draw_position();
+
+    cr->set_source(m_position_surface, 0, 0);
     cr->paint();
 
     if (m_text_surface_dirty)
@@ -173,6 +185,28 @@ void Waveform::draw_text()
     cr->move_to(margin_left, pos_y);
     cr->show_text(std::to_string(mouse_s) + " s");
     pos_y += line_height;
+}
+void Waveform::draw_position()
+{
+    m_position_surface_dirty = false;
+    
+    
+    auto cr = Cairo::Context::create(m_position_surface);
+    cr->set_operator(Cairo::Context::Operator::CLEAR);
+    cr->paint();
+    cr->set_operator(Cairo::Context::Operator::OVER);
+    cr->set_source_rgba(0, 0, 0, 0.0);
+    cr->paint();
+
+    auto sw = m_waveform_surface->get_width();
+    auto sh = m_waveform_surface->get_height();
+
+    long position = hack_sound_position->load();
+    double left = get_pixel_at(position);
+    cr->set_source_rgba(1.0, 1.0, 1.0, 1.0);
+    cr->rectangle(left, 0, 1, sh);
+    cr->fill();
+
 }
 void Waveform::draw_selection()
 {
@@ -320,8 +354,9 @@ void Waveform::zoom_around(long frame, bool zoom_out)
     queue_draw();
 }
 // hack
-void Waveform::set_hack_sound_start_sound_end(std::atomic<long> *s, std::atomic<long> *e)
+void Waveform::set_hack_sound_start_sound_end_sound_position(std::atomic<long> *s, std::atomic<long> *e, std::atomic<long> *p)
 {
     hack_sound_start = s;
     hack_sound_end = e;
+    hack_sound_position = p;
 }

@@ -33,6 +33,7 @@ public:
   std::atomic<long> m_sound_end;
   void set_sound_start(long sound_start );
   void set_sound_end(long sound_end );
+  std::atomic<long> m_sound_position;
   
   Sound* m_sound;
 
