@@ -6,8 +6,8 @@ Waveform::Waveform()
     hack_sound_start = NULL;
     hack_sound_end = NULL;
 
-    signal_resize().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_scribble_resize));
-    set_draw_func(sigc::mem_fun(*this, &Waveform::on_drawingarea_checkerboard_draw));
+    signal_resize().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_resize));
+    set_draw_func(sigc::mem_fun(*this, &Waveform::on_drawingarea_draw));
 
     m_Drag_selection = Gtk::GestureDrag::create();
     m_Drag_selection->set_button(GDK_BUTTON_PRIMARY);
@@ -45,7 +45,7 @@ Waveform::Waveform()
 }
 
 bool Waveform::on_vbl_timeout()
-{    
+{
     return true;
 }
 void Waveform::on_mouse_leave()
@@ -80,30 +80,25 @@ void Waveform::set_sound(Sound _sound)
     visible_start = 0;
     visible_end = sound.get_frame_count();
 }
-void Waveform::on_drawingarea_scribble_resize(int width, int height)
+void Waveform::on_drawingarea_resize(int width, int height)
 {
     draw_all();
 }
-void Waveform::scribble_create_surface()
+void Waveform::create_draw_surface()
 {
-    m_waveform_surface = Cairo::ImageSurface::create(Cairo::Surface::Format::ARGB32,
-                                                     get_width(), get_height());
-
+    m_waveform_surface = Cairo::ImageSurface::create(Cairo::Surface::Format::ARGB32, get_width(), get_height());
     auto cr = Cairo::Context::create(m_waveform_surface);
     cr->set_source_rgb(0, 0, 0);
     cr->paint();
-    /*cr->set_source_rgb(rand() / double(RAND_MAX), rand() / double(RAND_MAX), rand() / double(RAND_MAX));
-    cr->rectangle(10, 10, 30, 30);*/
-    cr->fill();
 }
-void Waveform::on_drawingarea_checkerboard_draw(const Cairo::RefPtr<Cairo::Context> &cr, int width, int height)
+void Waveform::on_drawingarea_draw(const Cairo::RefPtr<Cairo::Context> &cr, int width, int height)
 {
     cr->set_source(m_waveform_surface, 0, 0);
     cr->paint();
 }
 void Waveform::draw_all()
 {
-    scribble_create_surface();
+    create_draw_surface();
     draw_sound();
     draw_selection();
     draw_text();

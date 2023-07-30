@@ -65,14 +65,10 @@ public:
   MainWindow();
 
   Waveform m_Waveform;
-
-  // void on_drawingarea_checkerboard_draw(const Cairo::RefPtr<Cairo::Context> &cr, int width, int height);
+  
   Gtk::Box m_VBox;
 
-  // Gtk::Frame m_Frame_Checkerboard;
   Gtk::Frame m_Frame_Waveform;
-  // Gtk::DrawingArea m_DrawingArea_Checkerboard;
-  // Gtk::Label m_Label_Checkerboard;
 
   Gtk::ToggleButton m_Button_play;
   void on_button_play_clicked();
@@ -80,11 +76,6 @@ public:
   Gtk::Button m_Button_open;
   void on_button_open_clicked();
 
-//  Gtk::Button m_Button_load;
-//  void on_button_load_clicked();
-
-  //  Cairo::RefPtr<Cairo::ImageSurface> m_surface;
-  // Glib::RefPtr<Gtk::GestureDrag> m_drag;
 
   Gtk::Box m_HBox_time_ratio;
   TimeRatioRange m_time_ratio_range;
@@ -92,6 +83,7 @@ public:
   Gtk::Scale m_Scale_time_ratio;
   void on_time_ratio_value_changed();
   Gtk::Entry m_Entry_time_ratio;
+
   // Gtk::Scale::SlotFormatValue m_Scale_time_ratio_format_value;
   // char* m_Scale_time_ratio_format_value(double value);
   /*
@@ -108,10 +100,7 @@ public:
   Glib::RefPtr<Gtk::FileChooserNative> m_Dialog_open_audio_file;
   void on_folder_dialog_response(int response_id, Glib::RefPtr<Gtk::FileChooserNative> &m_Dialog_open_audio_file);
 
-  Cairo::RefPtr<Cairo::ImageSurface> m_surface;
-  // void draw_sound(Sound some_sound);
-  void on_drawingarea_scribble_resize(int width, int height);
-  // void scribble_create_surface();
+
 
   Glib::RefPtr<Gtk::EventControllerKey> m_Keypressed;
   // void on_key_pressed(guint keyval, int keycode, Gdk::ModifierType state);
@@ -122,12 +111,7 @@ public:
   long m_selection_end;
   void set_selection_bounds(long selection_start, long selection_end);
 };
-/*
-char *MainWindow::m_Scale_time_ratio_format_value(double value)
-{
-  return std::to_string(666).c_str();
-}
-*/
+
 void MainWindow::set_selection_bounds(long selection_start, long selection_end)
 {
     m_selection_start = selection_start;

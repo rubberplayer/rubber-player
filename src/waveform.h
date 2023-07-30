@@ -8,9 +8,9 @@ public:
     int id;
     Cairo::RefPtr<Cairo::ImageSurface> m_waveform_surface;
 
-    void on_drawingarea_scribble_resize(int width, int height);
-    void scribble_create_surface();
-    void on_drawingarea_checkerboard_draw(const Cairo::RefPtr<Cairo::Context> &cr, int width, int height);
+    void on_drawingarea_resize(int width, int height);
+    void create_draw_surface();
+    void on_drawingarea_draw(const Cairo::RefPtr<Cairo::Context> &cr, int width, int height);
 
     long visible_start;
     long visible_end;
