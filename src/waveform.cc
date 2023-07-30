@@ -146,14 +146,11 @@ void Waveform::draw_selection()
 }
 void Waveform::draw_sound()
 {
-
     auto cr = Cairo::Context::create(m_waveform_surface);
 
-    //    cr->set_source_rgb(0, 0, 0);
     auto sw = m_waveform_surface->get_width();
     auto sh = m_waveform_surface->get_height();
 
-    // cr->set_source_rgb(rand() / double(RAND_MAX), rand() / double(RAND_MAX), rand() / double(RAND_MAX));
     cr->set_source_rgb(1.0, 0.5, 0.25);
     double visible_frames = (double)(visible_end - visible_start);
     for (int i = 0; i < sw; i++)
@@ -196,33 +193,30 @@ void Waveform::on_drawingarea_drag_selection_begin(double start_x, double start_
 
 void Waveform::on_drawingarea_drag_selection_update(double offset_x, double offset_y)
 {
-    set_selection_bounds(selection_start, selection_start + get_frame_number_at(offset_x)-get_frame_number_at((long)0));
+    set_selection_bounds(selection_start, selection_start + get_frame_number_at(offset_x) - get_frame_number_at((long)0));
     draw_all();
     queue_draw();
 }
 
 void Waveform::on_drawingarea_drag_selection_end(double offset_x, double offset_y)
 {
-    set_selection_bounds(selection_start, selection_start + get_frame_number_at(offset_x)-get_frame_number_at((long)0));
+    set_selection_bounds(selection_start, selection_start + get_frame_number_at(offset_x) - get_frame_number_at((long)0));
     draw_all();
     queue_draw();
 }
-
 
 void Waveform::set_selection_bounds(int _selection_start, int _selection_end)
 {
     selection_start = std::clamp(_selection_start, 0, (int)sound.read_count - 1);
     selection_end = std::clamp(_selection_end, 0, (int)sound.read_count - 1);
-    //  printf("selection is now %d,%d %d\n", selection_start, selection_end, sound.read_count);
 }
 
 void Waveform::on_drawingarea_scroll_begin()
 {
-    printf("scroll_begin\n");
 }
 bool Waveform::on_drawingarea_scroll(double x, double y)
 {
-    printf("scroll %f, %f\n", x, y);
+
     zoom_around(get_frame_number_at(mouse_x), (y > 0));
     return true;
 }
@@ -267,6 +261,4 @@ void Waveform::zoom_around(long frame, bool zoom_out)
 
     draw_all();
     queue_draw();
-
-    printf("[%d,%d]\n", visible_start, visible_end);
 }
