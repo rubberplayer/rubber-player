@@ -146,169 +146,46 @@ void Waveform::draw_selection()
 }
 void Waveform::draw_sound()
 {
-    // scribble_create_surface();
-    auto cr = Cairo::Context::create(m_waveform_surface);
-    /*
-    sf_count_t read_count;
-    float *ptr;
-    */
-    // printf("MainWindow::draw_sound %d \n", sound.read_count);
 
-    cr->set_source_rgb(0, 0, 0);
+    auto cr = Cairo::Context::create(m_waveform_surface);
+
+    //    cr->set_source_rgb(0, 0, 0);
     auto sw = m_waveform_surface->get_width();
     auto sh = m_waveform_surface->get_height();
-    // printf("dimensions %dx%d\n", sw, sh);
 
-    cr->set_source_rgb(rand() / double(RAND_MAX), rand() / double(RAND_MAX), rand() / double(RAND_MAX));
+    // cr->set_source_rgb(rand() / double(RAND_MAX), rand() / double(RAND_MAX), rand() / double(RAND_MAX));
     cr->set_source_rgb(1.0, 0.5, 0.25);
-
-    // int method = (sw > sound.get_frame_count()) ? (-1) : 1;
-    int method = -2;
-    if (method == -2)
+    double visible_frames = (double)(visible_end - visible_start);
+    for (int i = 0; i < sw; i++)
     {
-        double visible_frames = (double)(visible_end - visible_start);
-        for (int i = 0; i < sw; i++)
+        long p0 = visible_start + (long)(((double)i / (double)sw) * visible_frames);
+        long p1;
+        if (i == (sw - 1))
         {
-            long p0 = visible_start + (long)(((double)i / (double)sw) * visible_frames);
-            long p1;
-            if (i == (sw - 1))
-            {
-                p1 = visible_end;
-            }
-            else
-            {
-                p1 = visible_start + (long)(((double)(i + 1) / (double)sw) * visible_frames);
-            }
-            float max = -1;
-            float min = 1;
-            for (int j = p0; j <= p1; j++)
-            {
-                float value = sound.ptr[j];
-                max = std::max(max, value);
-                min = std::min(min, value);
-            }
-             int x = i;
-            int height = std::max(1.0, (((max - min)) / 2.0) * sh);
-            int width = 1;
-            cr->rectangle(
-                x,
-                ((min + 1.0) / 2.0) * sh,
-                width,
-                height);
-            cr->fill();
+            p1 = visible_end;
         }
-    }
-    else if (method = 666)
-    {
-        double visible_frames = (double)(visible_end - visible_start);
-        for (int i = 0; i < sw; i++)
+        else
         {
-            long p = visible_start + (long)(((double)i / (double)sw) * visible_frames);
-            float value = sound.ptr[p];
-            int x = i;
-            int y = (value + 1.0) / 2.0 * (float)sh;
-            cr->rectangle(x, y, 1, 1);
-            cr->fill();
+            p1 = visible_start + (long)(((double)(i + 1) / (double)sw) * visible_frames);
         }
-    }
-    else if (method == 0)
-    {
-        for (int i = 0; i < sound.read_count; i++)
+        float max = -1;
+        float min = 1;
+        for (int j = p0; j <= p1; j++)
         {
-            // nearest value
-            float value = sound.ptr[i];
-            int x = ((float)i) / ((float)(sound.read_count)) * (float)sw;
-            int y = (value + 1.0) / 2.0 * (float)sh;
-            cr->rectangle(x, y, 2, 2);
-            cr->fill();
-        }
-    }
-    else if (method == -1)
-    {
-        for (int i = 0; i < sound.read_count; i++)
-        {
-            float value = sound.ptr[i];
-            float r0 = ((float)i) / ((float)(sound.read_count)) * (float)sw;
-            float r1 = ((float)(i + 1)) / ((float)(sound.read_count)) * (float)sw;
-            int min_x = std::floor(r0);
-            int max_x = std::ceil(r1);
-            int y = (2.0 - (value + 1.0)) / 2.0 * (float)sh;
-            cr->rectangle(min_x, y, max_x - min_x, 1);
-            cr->fill();
-        }
-    }
-    else if (method == 1)
-    {
-        // int width = std::max((float)1.0,((float)sw)/((float)(sound.read_count)));
-        //  min max in interval
-        int first_sample = 0;
-        for (int i = 0; i < sw; i++)
-        {
-            float pos_to = ((float)(i + 1)) / ((float)sw) * (float)(sound.read_count);
-            int last_sample = std::clamp((int)round(pos_to), first_sample, (int)sound.read_count - 1);
-
-            float max = -1;
-            float min = 1;
-            for (int j = first_sample; j <= last_sample; j++)
-            {
-                float value = sound.ptr[j];
-                max = std::max(max, value);
-                min = std::min(min, value);
-            }
-            //    printf("@%d interval idx [%d,%d] samples [%f,%f]\n", i, first_sample, last_sample, min, max);
-            int x = i;
-            int height = std::max(1.0, (((max - min)) / 2.0) * sh);
-            int width = 1;
-            // int height = 1;
-            cr->rectangle(
-                x,
-                ((min + 1.0) / 2.0) * sh,
-                width,
-                height);
-            cr->fill();
-            first_sample = std::min(last_sample + 1, (int)sound.read_count - 1);
-        }
-    }
-    else if (method == 2)
-    {
-        // same as 0 ?
-        for (int i = 0; i < sw; i++)
-        {
-            int idx = std::floor(((float)(i) / ((float)sw) * (float)(sound.read_count)));
-            float value = sound.ptr[idx];
-            int x = i;
-            int y = ((value + 1.0) / 2.0) * sh;
-            cr->rectangle(x, y, 1, 1);
-            cr->fill();
-        }
-    }
-    else if (method == 3)
-    {
-        // a random in interval
-        int first_sample = 0;
-        for (int i = 0; i < sw; i++)
-        {
-            float pos_to = ((float)(i + 1)) / ((float)sw) * (float)(sound.read_count);
-            int last_sample = std::clamp((int)round(pos_to), first_sample, (int)sound.read_count - 1);
-
-            float max = -1;
-            float min = 1;
-
-            int j = min + (rand() % static_cast<int>(max - min + 1));
             float value = sound.ptr[j];
-            int x = i;
-            int y = ((value + 1.0) / 2.0) * sh;
-            cr->rectangle(x, y, 1, 1);
-            cr->fill();
-            first_sample = std::min(last_sample + 1, (int)sound.read_count - 1);
+            max = std::max(max, value);
+            min = std::min(min, value);
         }
+        int x = i;
+        int height = std::max(1.0, (((max - min)) / 2.0) * sh);
+        int width = 1;
+        cr->rectangle(
+            x,
+            ((min + 1.0) / 2.0) * sh,
+            width,
+            height);
+        cr->fill();
     }
-
-    /*
-      cr->set_source_rgb(rand() / double(RAND_MAX), rand() / double(RAND_MAX), rand() / double(RAND_MAX));
-      cr->rectangle(20, 20, 50, 50);
-      cr->fill();
-      */
 }
 void Waveform::on_drawingarea_drag_selection_begin(double start_x, double start_y)
 {
