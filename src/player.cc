@@ -3,19 +3,28 @@
 #include <cstdio>
 #include <cstdlib>
 #include <rubberband/RubberBandStretcher.h>
+
 Player::~Player()
 {
+    terminate_the_play_thread.store(true);
+    the_play_thread.join();
     pa_simple_free(this->s);
     delete rubberBandStretcher;
 }
 
 Player::Player()
 {
+    play_started.store(false);
+    terminate_the_play_thread.store(false);
 
     rubberBandStretcher = new RubberBand::RubberBandStretcher(48000, 1,
                                                               RubberBand::RubberBandStretcher::DefaultOptions | RubberBand::RubberBandStretcher::OptionProcessOffline);
     printf("RubberBand engine version : %d\n", rubberBandStretcher->getEngineVersion());
     printf("RubberBand engine channel count : %d\n", rubberBandStretcher->getChannelCount());
+    connect_to_pulseaudio();
+
+    the_play_thread = std::thread([this]
+                                  { play_always(); });
 }
 void Player::connect_to_pulseaudio()
 {
@@ -121,6 +130,7 @@ void Player::play_some(float *ptr, size_t bytes)
 }
 void Player::play_some()
 {
+    printf("Player::play_some()\n");
     printf("is pa object null ? %d \n", this->s);
     if (this->s != NULL)
     {
@@ -135,6 +145,24 @@ void Player::play_some()
         printf("error while playing ? %d : %s\n", error, pa_strerror(error));
     }
 };
+
+void Player::play_always()
+{
+    using namespace std::chrono_literals;
+    for (;;)
+    {
+        if (terminate_the_play_thread.load() == true)
+        {
+            return;
+        }
+        if (play_started.load() == true)
+        {
+            printf("yoyoyo\n");
+        }
+        std::this_thread::sleep_for(500ms);
+    }
+}
+
 /*
 
 
@@ -145,5 +173,18 @@ void Player::play_some()
 
 
     if (s)
-     
+
 */
+
+void Player::start_playing()
+{
+    printf("Player::start_playing\n");
+    play_started.store(true);
+}
+
+void Player::stop_playing()
+{
+    printf("Player::stop_playing\n");
+    play_started.store(false);
+}
+

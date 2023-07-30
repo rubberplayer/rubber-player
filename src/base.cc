@@ -13,7 +13,7 @@
 #include "./sound.h"
 #include "./waveform.h"
 //////////////////////////////////
-
+#include <thread>
 ///
 /// https://docs.gtk.org/gtk4/class.FileDialog.html since 4.10
 ///
@@ -59,7 +59,6 @@ public:
   }
 };
 
-
 class MainWindow : public Gtk::Window
 {
 public:
@@ -69,13 +68,13 @@ public:
 
   // void on_drawingarea_checkerboard_draw(const Cairo::RefPtr<Cairo::Context> &cr, int width, int height);
   Gtk::Box m_VBox;
-  
+
   // Gtk::Frame m_Frame_Checkerboard;
   Gtk::Frame m_Frame_Waveform;
   // Gtk::DrawingArea m_DrawingArea_Checkerboard;
   // Gtk::Label m_Label_Checkerboard;
 
-  Gtk::Button m_Button_play;
+  Gtk::ToggleButton m_Button_play;
   void on_button_play_clicked();
 
   Gtk::Button m_Button_open;
@@ -95,14 +94,13 @@ public:
   Gtk::Entry m_Entry_time_ratio;
   // Gtk::Scale::SlotFormatValue m_Scale_time_ratio_format_value;
   // char* m_Scale_time_ratio_format_value(double value);
-/*
-  PitchRange m_pitch_range;
-  Gtk::Label m_Label_pitch;
-  Gtk::Scale m_Scale_pitch;
-  void on_pitch_value_changed();
-  Gtk::Entry m_Entry_pitch;
-*/
-
+  /*
+    PitchRange m_pitch_range;
+    Gtk::Label m_Label_pitch;
+    Gtk::Scale m_Scale_pitch;
+    void on_pitch_value_changed();
+    Gtk::Entry m_Entry_pitch;
+  */
 
   Player player;
   Sound sound;
@@ -151,16 +149,16 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
 
   m_Frame_Waveform.set_child(m_Waveform);
 
-  player.connect_to_pulseaudio();
+  /*player.connect_to_pulseaudio();*/
 
   // m_Scale_time_ratio.set_digits(5);
- 
+
   m_Label_time_ratio.set_text("Time Ratio");
   m_Label_time_ratio.set_valign(Gtk::Align::END);
   m_Label_time_ratio.set_margin_bottom(8);
   m_Label_time_ratio.set_margin_start(4);
   m_HBox_time_ratio.append(m_Label_time_ratio);
-  
+
   m_Scale_time_ratio.set_draw_value(false);
   m_Scale_time_ratio.set_range(m_time_ratio_range.display_min, m_time_ratio_range.display_max);
   m_Scale_time_ratio.set_value(0);
@@ -174,14 +172,13 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
   {
     if (marks[i_mark] == 666.0)
       break;
-    m_Scale_time_ratio.add_mark(marks[i_mark], Gtk::PositionType::TOP, m_time_ratio_range.get_value_string_for_label_display(marks[i_mark]));    
+    m_Scale_time_ratio.add_mark(marks[i_mark], Gtk::PositionType::TOP, m_time_ratio_range.get_value_string_for_label_display(marks[i_mark]));
     i_mark++;
   }
   m_HBox_time_ratio.append(m_Scale_time_ratio);
   m_Entry_time_ratio.set_valign(Gtk::Align::END);
   m_HBox_time_ratio.append(m_Entry_time_ratio);
   m_VBox.append(m_HBox_time_ratio);
-
 
   m_VBox.append(m_Button_play);
   m_VBox.append(m_Button_open);
@@ -215,7 +212,18 @@ void MainWindow::on_time_ratio_value_changed()
 }
 void MainWindow::on_button_play_clicked()
 {
-  player.play_some();
+  bool active = m_Button_play.get_active();
+  printf("on_button_play_clicked clicked : active : %b\n", active);
+  if (active)
+  {
+      player.start_playing();
+  }
+  else
+  {
+      player.stop_playing();
+  }
+  // player.play_some();
+  // player.play_forever();
 }
 
 int main(int argc, char *argv[])
