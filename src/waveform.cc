@@ -41,7 +41,12 @@ Waveform::Waveform()
     m_Mousemotion->signal_enter().connect(sigc::mem_fun(*this, &Waveform::on_mouse_enter));
     m_Mousemotion->signal_leave().connect(sigc::mem_fun(*this, &Waveform::on_mouse_leave));
 
-    
+    Glib::signal_timeout().connect(sigc::mem_fun(*this, &Waveform::on_vbl_timeout), 16);
+}
+
+bool Waveform::on_vbl_timeout()
+{    
+    return true;
 }
 void Waveform::on_mouse_leave()
 {
@@ -216,9 +221,10 @@ void Waveform::set_selection_bounds(int _selection_start, int _selection_end)
     selection_start = std::clamp(_selection_start, 0, (int)sound.read_count - 1);
     selection_end = std::clamp(_selection_end, 0, (int)sound.read_count - 1);
 
-    if (hack_sound_start != NULL) hack_sound_start->store(selection_start);
-    if (hack_sound_end != NULL ) hack_sound_end->store(selection_end);
-
+    if (hack_sound_start != NULL)
+        hack_sound_start->store(selection_start);
+    if (hack_sound_end != NULL)
+        hack_sound_end->store(selection_end);
 }
 
 void Waveform::on_drawingarea_scroll_begin()

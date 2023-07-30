@@ -68,4 +68,7 @@ public:
     std::atomic<long> *hack_sound_start;
     std::atomic<long> *hack_sound_end;
     void set_hack_sound_start_sound_end(std::atomic<long> *s, std::atomic<long> *e);
+
+    //
+    bool on_vbl_timeout();
 };
