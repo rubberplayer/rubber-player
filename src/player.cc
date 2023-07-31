@@ -14,7 +14,10 @@ Player::~Player()
         pa_simple_free(m_pa_simple);
         m_pa_simple = NULL;
     }
-    delete rubberBandStretcher;
+    if (rubberBandStretcher != NULL)
+    {
+        delete rubberBandStretcher;
+    }
 }
 
 Player::Player()
@@ -24,6 +27,9 @@ Player::Player()
     set_time_ratio(1);
     set_sound_start(0);
     set_sound_end(0);
+    m_pa_simple = NULL;
+    rubberBandStretcher = NULL;
+    
     m_play_started.store(false);
     m_terminate_the_play_thread.store(false);
 }
