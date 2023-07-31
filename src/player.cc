@@ -9,12 +9,17 @@ Player::~Player()
 {
     m_terminate_the_play_thread.store(true);
     m_the_play_thread.join();
-    pa_simple_free(this->s);
+    if (m_pa_simple != NULL)
+    {
+        pa_simple_free(m_pa_simple);
+        m_pa_simple = NULL;
+    }
     delete rubberBandStretcher;
 }
 
 Player::Player()
 {
+    printf("Player::Player()\n");
     set_pitch_scale(1);
     set_time_ratio(1);
     set_sound_start(0);
@@ -27,52 +32,33 @@ Player::Player()
 
     printf("RubberBand engine version : %d\n", rubberBandStretcher->getEngineVersion());
     printf("RubberBand engine channel count : %d\n", rubberBandStretcher->getChannelCount());
-    connect_to_pulseaudio();
-
-    m_the_play_thread = std::thread([this]
-                                    { play_always(); });
+    //    connect_to_pulseaudio();
 }
-void Player::connect_to_pulseaudio()
+void Player::connect_to_pulseaudio(int channels, int framerate)
 {
-    /* https://freedesktop.org/software/pulseaudio/doxygen/simple.html */
-    // this->ss.format = PA_SAMPLE_S16NE;
-    // this->ss.format = PA_SAMPLE_S16NE;
-    this->ss.format = PA_SAMPLE_FLOAT32;
-    this->ss.channels = 1;
-    this->ss.rate = 48000; // 44100;
-
-    this->s = pa_simple_new(NULL,             // Use the default server.
-                            APPLICATION_NAME, // Our application's name.
-                            PA_STREAM_PLAYBACK,
-                            NULL,    // Use the default device.
-                            "Music", // Description of our stream.
-                            &ss,     // Our sample format.
-                            NULL,    // Use default channel map
-                            NULL,    // Use default buffering attributes.
-                            NULL     // Ignore error code.
+    printf("void Player::connect_to_pulseaudio(int channels, int framerate)\n");
+    printf("connect to pulseaudio channels %d; framerate %d\n", channels, framerate);
+    m_pa_sample_spec.format = PA_SAMPLE_FLOAT32;
+    m_pa_sample_spec.channels = channels;
+    m_pa_sample_spec.rate = framerate;
+    m_pa_simple = pa_simple_new(NULL,             // Use the default server.
+                                APPLICATION_NAME, // Our application's name.
+                                PA_STREAM_PLAYBACK,
+                                NULL,              // Use the default device.
+                                "Music",           // Description of our stream.
+                                &m_pa_sample_spec, // Our sample format.
+                                NULL,              // Use default channel map
+                                NULL,              // Use default buffering attributes.
+                                NULL               // Ignore error code.
     );
-    printf("is pa object null ? %d \n", this->s);
+    printf("is pa object null ? %d \n", m_pa_simple);
 };
 
 void Player::play_always()
 {
-
-    pa_sample_spec pass;
-    pass.format = PA_SAMPLE_FLOAT32;
-    pass.channels = 1;
-    pass.rate = 48000; // 44100;
-
-    pa_simple *pas = pa_simple_new(NULL,             // Use the default server.
-                                   APPLICATION_NAME, // Our application's name.
-                                   PA_STREAM_PLAYBACK,
-                                   NULL,    // Use the default device.
-                                   "Music", // Description of our stream.
-                                   &pass,   // Our sample format.
-                                   NULL,    // Use default channel map
-                                   NULL,    // Use default buffering attributes.
-                                   NULL     // Ignore error code.
-    );
-    printf("is pas object null ? %d \n", pas);
+    printf("void Player::play_always()\n");
+    connect_to_pulseaudio(m_sound->get_channels(), m_sound->get_samplerate());
+    printf("2\n");
 
     long position = 0;
     size_t rubberband_output_block_size = 2 * 3 * 4 * 5 * 6 * 7 * 256;
@@ -108,7 +94,7 @@ void Player::play_always()
                 previous_play_state = l_play_started;
                 // i don't know why
                 int pa_drain_error;
-                if (pa_simple_drain(s, &pa_drain_error) < 0)
+                if (pa_simple_drain(m_pa_simple, &pa_drain_error) < 0)
                 {
                     fprintf(stderr, __FILE__ ": pa_simple_drain() failed: %s\n", pa_strerror(pa_drain_error));
                 }
@@ -180,7 +166,7 @@ void Player::play_always()
             rubberBandStretcher->retrieve(&rubberband_output, retrieve_from_rubberband_size);
 
             int pa_write_error;
-            pa_simple_write(pas, (void *)rubberband_output, retrieve_from_rubberband_size * sizeof(float), &pa_write_error);
+            pa_simple_write(m_pa_simple, (void *)rubberband_output, retrieve_from_rubberband_size * sizeof(float), &pa_write_error);
 
             if (samples_sent_to_sink == 0)
             {
@@ -221,12 +207,14 @@ void Player::stop_playing()
     m_play_started.store(false);
 }
 
-void Player::set_sound(Sound *_sound)
+void Player::set_sound(Sound *sound)
 {
     stop_playing();
-    m_sound = _sound;
+    m_sound = sound;
     set_sound_start(0);
     set_sound_end(m_sound->get_frame_count());
+    m_the_play_thread = std::thread([this]
+                                    { play_always(); });
 }
 void Player::set_pitch_scale(double pitch_scale)
 {

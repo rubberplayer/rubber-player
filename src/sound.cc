@@ -45,6 +45,10 @@ int Sound::get_samplerate()
 {
   return sfinfo.samplerate;
 }
+int Sound::get_channels()
+{
+  return sfinfo.channels;
+}
 float *Sound::get_sound_data()
 {
   return ptr;
