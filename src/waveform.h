@@ -10,11 +10,13 @@ public:
     Cairo::RefPtr<Cairo::ImageSurface> m_text_surface;
     Cairo::RefPtr<Cairo::ImageSurface> m_selection_surface;
     Cairo::RefPtr<Cairo::ImageSurface> m_position_surface;
+    Cairo::RefPtr<Cairo::ImageSurface> m_scale_surface;
 
     bool m_waveform_surface_dirty;
     bool m_text_surface_dirty;
     bool m_selection_surface_dirty;
     bool m_position_surface_dirty;
+    bool m_scale_surface_dirty;
 
     void on_drawingarea_resize(int width, int height);
     void create_draw_surface();
@@ -27,6 +29,7 @@ public:
     void set_sound(Sound sound);
 
     void draw_sound();
+    void draw_scale();
     void draw_selection();
     void draw_position();
     void draw_text();
@@ -54,7 +57,20 @@ public:
     long translation_initial_visible_start;
     long translation_initial_visible_end;
 
-
+    class ScaleUnit
+    {
+    public:
+        double m_period_s;
+        double m_display_low_bound_px;
+        double m_display_height_px;
+        std::string m_name;
+        double m_name_period_s;
+        std::string to_string() const;
+        std::string duration_display_string(double seconds) const;
+        ScaleUnit(double period_s, double display_low_bound_px, double display_height_px, std::string name, double name_period_s);
+        
+    };
+    std::list<ScaleUnit> m_scale_units;
 
     // bool has_selection;
     long selection_start;
@@ -62,7 +78,6 @@ public:
     void set_selection_bounds(int _selection_start, int _selection_end);
     long get_frame_number_at(double offset_x);
     double get_pixel_at(long frame);
-
 
     Glib::RefPtr<Gtk::EventControllerKey> m_Keypressed;
     bool on_key_pressed(const unsigned int a, const unsigned int b, const Gdk::ModifierType c);

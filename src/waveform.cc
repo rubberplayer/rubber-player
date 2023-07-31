@@ -1,10 +1,80 @@
 #include "./waveform.h"
 #include <cairo.h>
+
+Waveform::ScaleUnit::ScaleUnit(double period_s, double display_low_bound_px, double display_height_px, std::string name, double name_period_s)
+{
+    m_period_s = period_s;
+    m_display_low_bound_px = display_low_bound_px;
+    m_display_height_px = display_height_px;
+    m_name = name;
+    m_name_period_s = name_period_s;
+}
+std::string Waveform::ScaleUnit::duration_display_string(double seconds) const
+{
+    int d_hours = std::floor(seconds / 3600.0);
+    seconds -= (double)d_hours * 3600;
+    int d_minutes = std::floor(seconds / 60.0);
+    seconds -= (double)d_minutes * 60;
+    int d_seconds = std::floor(seconds);
+    seconds -= (double)d_seconds;
+    int d_milliseconds = std::floor(1000 * seconds);
+
+    std::string s = "";
+    if (d_hours > 0)
+    {
+        s += std::to_string(d_hours) + "h";
+    }
+    if (d_minutes > 0)
+    {
+        s += std::to_string(d_minutes) + "m";
+    }
+    if (d_seconds > 0)
+    {
+        s += std::to_string(d_seconds) + "s";
+    }
+    if (d_milliseconds > 0)
+    {
+        std::string s_ms = std::to_string(d_milliseconds);
+        s += std::string(4 - s_ms.length(), '0') + s_ms + "ms";
+    }
+
+    return s;
+
+    //
+
+    // seconds -= d_minutes * 60;
+    // double d_seconds = seconds;
+    // /*double d_seconds = std::floor(seconds);
+    // seconds -= d_seconds;
+    // double d_milliseconds = seconds * 1000.0*/
+    //
+    // std::string s_hours = (d_hours == 0) ? "" : (std::to_string((int)d_hours) + ":");
+    // std::string s_minutes = (d_minutes == 0) ? "" : (std::to_string((int)d_minutes) + ":");
+    // std::string s_seconds = std::to_string(d_seconds);
+    // // string s_milliseconds = std::to_string(d_milliseconds);
+    // return s_hours + s_minutes + s_seconds;
+    //
+    // return "super";
+}
+
+std::string Waveform::ScaleUnit::to_string() const
+{
+    return "period: " + std::to_string(m_period_s) + "s" + " " + "low bound: " + std::to_string(m_display_low_bound_px) + "px" + " " + "height: " + std::to_string(m_display_height_px) + "px" + " " + "name: " + m_name + " " + "name period: " + std::to_string(m_name_period_s);
+}
 Waveform::Waveform()
 {
     // hack
     hack_sound_start = NULL;
     hack_sound_end = NULL;
+
+    // m_scale_units.push_back(Waveform::ScaleUnit(10, 10, 40.0));
+    m_scale_units.push_back(Waveform::ScaleUnit(60.0, 10, 60.0, "s", 1.0));
+    m_scale_units.push_back(Waveform::ScaleUnit(30.0, 10, 50.0, "s", 1.0));
+    m_scale_units.push_back(Waveform::ScaleUnit(10.0, 10, 40.0, "s", 1.0));
+    m_scale_units.push_back(Waveform::ScaleUnit(1.0, 10, 30.0, "s", 1.0));
+    m_scale_units.push_back(Waveform::ScaleUnit(0.1, 10, 20.0, "ms", 0.001));
+    m_scale_units.push_back(Waveform::ScaleUnit(0.01, 10, 10.0, "ms", 0.001));
+    m_scale_units.push_back(Waveform::ScaleUnit(0.001, 10, 5.0, "ms", 0.001));
 
     signal_resize().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_resize));
     set_draw_func(sigc::mem_fun(*this, &Waveform::on_drawingarea_draw));
@@ -29,6 +99,7 @@ Waveform::Waveform()
 
     // has_selection = false;
     m_waveform_surface_dirty = true;
+    m_scale_surface_dirty = true;
     m_selection_surface_dirty = true;
     m_position_surface_dirty = true;
     m_text_surface_dirty = true;
@@ -107,22 +178,25 @@ void Waveform::set_sound(Sound _sound)
     m_waveform_surface_dirty = true;
     m_selection_surface_dirty = true;
     m_text_surface_dirty = true;
-
+    m_scale_surface_dirty = true;
     queue_draw();
 }
 void Waveform::on_drawingarea_resize(int width, int height)
 {
     create_draw_surface();
     m_waveform_surface_dirty = true;
+    m_scale_surface_dirty = true;
     m_selection_surface_dirty = true;
     m_text_surface_dirty = true;
+    m_scale_surface_dirty = true;
 }
 void Waveform::create_draw_surface()
 {
     m_waveform_surface = Cairo::ImageSurface::create(Cairo::Surface::Format::ARGB32, get_width(), get_height());
-    m_text_surface = Cairo::ImageSurface::create(Cairo::Surface::Format::ARGB32, get_width(), get_height());
+    m_scale_surface = Cairo::ImageSurface::create(Cairo::Surface::Format::ARGB32, get_width(), get_height());
     m_selection_surface = Cairo::ImageSurface::create(Cairo::Surface::Format::ARGB32, get_width(), get_height());
     m_position_surface = Cairo::ImageSurface::create(Cairo::Surface::Format::ARGB32, get_width(), get_height());
+    m_text_surface = Cairo::ImageSurface::create(Cairo::Surface::Format::ARGB32, get_width(), get_height());
 }
 void Waveform::on_drawingarea_draw(const Cairo::RefPtr<Cairo::Context> &cr, int width, int height)
 {
@@ -133,6 +207,12 @@ void Waveform::on_drawingarea_draw(const Cairo::RefPtr<Cairo::Context> &cr, int 
         draw_sound();
 
     cr->set_source(m_waveform_surface, 0, 0);
+    cr->paint();
+
+    if (m_scale_surface_dirty)
+        draw_scale();
+
+    cr->set_source(m_scale_surface, 0, 0);
     cr->paint();
 
     if (m_selection_surface_dirty)
@@ -160,6 +240,93 @@ void Waveform::draw_all()
     //  draw_selection();
     //    draw_text();
 }
+
+void Waveform::draw_scale()
+{
+    m_scale_surface_dirty = false;
+    auto cr = Cairo::Context::create(m_scale_surface);
+    cr->set_operator(Cairo::Context::Operator::CLEAR);
+    cr->paint();
+    cr->set_operator(Cairo::Context::Operator::OVER);
+    cr->set_source_rgba(0, 0, 0, 0.0);
+    cr->paint();
+
+    cr->set_source_rgba(1.0, 1.0, 1.0, 1.0);
+
+    double vw = (double)get_width();
+    double vh = (double)get_height();
+
+    double visible_start_s = ((double)visible_start) / ((double)sound.sfinfo.samplerate);
+    double visible_end_s = ((double)visible_end) / ((double)sound.sfinfo.samplerate);
+    double visible_length_s = visible_end_s - visible_start_s;
+
+    std::set<int> used_positions;
+
+    printf("---\n");
+    bool first_labelled = false;
+    int previous_level_label_count = 0;
+    for (auto const &scale_unit : m_scale_units)
+    {
+
+        double unit_length_s = scale_unit.m_period_s;                   // 0.1;
+        double unit_display_height_px = scale_unit.m_display_height_px; // scale_unit.m_period_s 20;
+        double unit_label_font_size = 12.0;
+        std::string unit_name = scale_unit.m_name;
+
+        double pixel_per_second = vw / visible_length_s;
+        double pixel_per_unit = unit_length_s * pixel_per_second;
+
+        printf("p/s: %f ; unit : %f p/u : %f \n", pixel_per_second, unit_length_s, pixel_per_unit);
+
+        double show_unit_low_bound_px = 20.0;
+        if (pixel_per_unit > show_unit_low_bound_px)
+        {
+            double left_s = std::floor(visible_start_s / unit_length_s) * unit_length_s;
+            double right_s = std::ceil(visible_end_s / unit_length_s) * unit_length_s;
+            int label_count = 0;
+            for (double x_s = left_s; x_s <= right_s; x_s += unit_length_s)
+            {
+                double x = get_pixel_at((long)(x_s * ((double)sound.sfinfo.samplerate)));
+
+                if (auto search = used_positions.find((int)x); search != used_positions.end())
+                    continue;
+
+                used_positions.insert((int)x);
+                cr->rectangle(std::round(x), vh - unit_display_height_px, 1, vh);
+                cr->fill();
+                if (previous_level_label_count >= 2)
+                {
+                    printf("%f has previous %d\n", x_s, previous_level_label_count);
+                }
+                else
+                {
+                    if (true || !first_labelled)
+                    {
+                        // auto z = scale_unit.to_string();
+                        if ((x_s >= visible_start_s) && (x_s <= visible_end_s))
+                        {
+                            // printf("@%f, !firstlab %s\n", x, scale_unit.to_string().c_str());
+                            cr->set_font_size(unit_label_font_size);
+                            cr->set_source_rgb(1.0, 1.0, 1.0);
+                            cr->move_to(std::round(x), vh - unit_display_height_px - unit_label_font_size);
+
+                            // int quantity = x_s / scale_unit.m_name_period_s;
+
+                            // cr->show_text(std::to_string(quantity) + unit_name);
+
+                            cr->show_text(scale_unit.duration_display_string(x_s));
+                            first_labelled = true;
+                            label_count++;
+                        }
+                    }
+                }
+            }
+            printf("%s ; LABELS %d\n", scale_unit.to_string().c_str(), label_count);
+            previous_level_label_count = std::max(label_count, previous_level_label_count);
+        }
+    }
+}
+
 void Waveform::draw_text()
 {
     m_text_surface_dirty = false;
@@ -394,6 +561,7 @@ void Waveform::on_drawingarea_drag_translation_update(double offset_x, double of
     visible_end = translation_initial_visible_end - d_translation;
 
     m_waveform_surface_dirty = true;
+    m_scale_surface_dirty = true;
     m_selection_surface_dirty = true;
     m_text_surface_dirty = true;
     queue_draw();
@@ -465,6 +633,7 @@ void Waveform::zoom_around(long frame, bool zoom_out)
     visible_end = std::min(new_right, (long)sound.get_frame_count());
 
     m_waveform_surface_dirty = true;
+    m_scale_surface_dirty = true;
     m_selection_surface_dirty = true;
     m_text_surface_dirty = true;
     queue_draw();
