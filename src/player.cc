@@ -96,6 +96,10 @@ void Player::play_always()
     size_t rubberband_output_block_size = 2 * 3 * 4 * 5 * 6 * 7 * 256;
     float *rubberband_output = (float *)malloc(rubberband_output_block_size * sizeof(float));
 
+    long samples_sent_to_sink = 0;
+    auto date_of_first_sample_sent_to_sink = std::chrono::high_resolution_clock::now();
+
+    long previous_play_state = m_play_started.load();
     using namespace std::chrono_literals;
     for (;;)
     {
@@ -103,11 +107,42 @@ void Player::play_always()
         {
             return;
         }
-        if (m_play_started.load() == false)
+        bool l_play_started = m_play_started.load();
+        if (l_play_started == false)
         {
-            std::this_thread::sleep_for(500ms);
+            if (previous_play_state != l_play_started)
+            {
+                // just stopped
+                auto begin = date_of_first_sample_sent_to_sink;
+                auto end = std::chrono::high_resolution_clock::now();
+                long previous_play_session_duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
+                printf("[player] just stopped, with %d samples sent\n", samples_sent_to_sink);
+                long samples_sent_to_sink_ms = (1000 * samples_sent_to_sink) / ((long)(m_sound->sfinfo.samplerate));
+                printf("[player]                    %d ms of samples sent\n", samples_sent_to_sink_ms);
+                printf("[player]      while %d ms of time passed\n", previous_play_session_duration_ms);
+                long samples_remaining_ms = samples_sent_to_sink_ms - previous_play_session_duration_ms;
+                printf("[player] so %d ms of time are still played by sink\n", samples_remaining_ms);
+                samples_sent_to_sink = 0;
+                previous_play_state = l_play_started;
+                // so sleep before doing anything;
+                std::this_thread::sleep_for(std::chrono::milliseconds(samples_remaining_ms));
+            }
+            else
+            {
+                // sleep a little to not loop furiously
+                std::this_thread::sleep_for(100ms);
+            }
             continue;
         }
+        else
+        {
+            if (previous_play_state != l_play_started)
+            {
+                printf("[player] just started, with %d samples sent \n", samples_sent_to_sink);
+            }
+            previous_play_state = l_play_started;
+        }
+
         double time_position = position / (double)m_sound->sfinfo.samplerate;
 
         long selection_start = m_sound_start.load();
@@ -139,7 +174,7 @@ void Player::play_always()
 
         long max_block_size = 256 * 4;
         long block_size = std::min(max_block_size, (long)samples_requiered);
-        //printf("samples_required %d, block_size %d\n",samples_requiered,block_size);
+        // printf("samples_required %d, block_size %d\n",samples_requiered,block_size);
         if ((position + block_size) >= selection_right)
         {
             block_size = selection_right - position;
@@ -152,11 +187,18 @@ void Player::play_always()
         int retrieve_from_rubberband_size = std::min((int)rubberband_output_block_size, available);
         if (retrieve_from_rubberband_size > 0)
         {
-            //printf("retrieve %d\n",retrieve_from_rubberband_size);
+            // printf("retrieve %d\n",retrieve_from_rubberband_size);
             rubberBandStretcher->retrieve(&rubberband_output, retrieve_from_rubberband_size);
 
             int pa_write_error;
-            pa_simple_write(pas, (void*)rubberband_output, retrieve_from_rubberband_size * sizeof(float), &pa_write_error);
+            pa_simple_write(pas, (void *)rubberband_output, retrieve_from_rubberband_size * sizeof(float), &pa_write_error);
+
+            if (samples_sent_to_sink == 0)
+            {
+                printf("=========\n");
+                date_of_first_sample_sent_to_sink = std::chrono::high_resolution_clock::now();
+            }
+            samples_sent_to_sink += retrieve_from_rubberband_size;
 
             if (pa_write_error != 0)
             {
@@ -172,6 +214,7 @@ void Player::play_always()
         // long bloc_duration_ms_long = (long)std::floor(block_duration_ms);
         if (block_size == 0)
         {
+            printf("ooooooooooooooooooodddddddddddddddddddiity\n");
             std::this_thread::sleep_for(std::chrono::milliseconds(16));
         }
     }
