@@ -6,6 +6,8 @@
 class Sound
 {
 public:
+  Sound();
+  ~Sound();
   SNDFILE *sndfile;
   SF_INFO sfinfo;
   std::string path;
@@ -15,6 +17,6 @@ public:
   bool is_loaded();
   sf_count_t get_frame_count();
   int get_samplerate();
-  float * get_sound_data();
+  float *get_sound_data();
 };
 #endif

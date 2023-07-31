@@ -153,7 +153,6 @@ Waveform::Waveform()
     m_position_surface_dirty = true;
     m_text_surface_dirty = true;
     create_draw_surface();
-    set_selection_bounds(0, 0);
 
     // zoom (scroll wheel)
     m_Scroll = Gtk::EventControllerScroll::create();
@@ -173,11 +172,10 @@ Waveform::Waveform()
     // fast periodic call for play position redraw
     Glib::signal_timeout().connect(sigc::mem_fun(*this, &Waveform::on_vbl_timeout), 1000 / 20);
 
-    // key event are not passed 
+    // key event are not passed
     // m_Keypressed = Gtk::EventControllerKey::create();
     // add_controller(m_Keypressed);
     // m_Keypressed->signal_key_pressed().connect(sigc::mem_fun(*this, &Waveform::on_key_pressed), false);
-
 }
 
 bool Waveform::on_vbl_timeout()
@@ -220,8 +218,13 @@ void Waveform::on_mouse_motion(double x, double y)
 void Waveform::set_sound(Sound _sound)
 {
     sound = _sound;
+
     visible_start = 0;
     visible_end = sound.get_frame_count();
+    selection_start = 0;
+    selection_end = 0;
+    selection_hot_handle = SelectionHotHandle::NONE;
+    proximity_hot_handle = SelectionHotHandle::NONE;
 
     m_waveform_surface_dirty = true;
     m_selection_surface_dirty = true;
@@ -292,6 +295,7 @@ void Waveform::draw_all()
 void Waveform::draw_scale()
 {
     m_scale_surface_dirty = false;
+
     auto cr = Cairo::Context::create(m_scale_surface);
     cr->set_operator(Cairo::Context::Operator::CLEAR);
     cr->paint();
@@ -529,6 +533,7 @@ void Waveform::draw_sound()
 
 Waveform::SelectionHotHandle Waveform::closest_hot_handle(double x)
 {
+
     double selection_start_pixel = get_pixel_at(selection_start);
     double distance_to_selection_start_pixel = std::abs(x - selection_start_pixel);
 
@@ -589,7 +594,6 @@ void Waveform::on_drawingarea_drag_selection_update(double offset_x, double offs
 
 void Waveform::on_drawingarea_drag_selection_end(double offset_x, double offset_y)
 {
-    /// set_selection_bounds(selection_start, selection_start + get_frame_number_at(offset_x) - get_frame_number_at((long)0));
     selection_hot_handle = SelectionHotHandle::NONE;
 }
 
@@ -627,6 +631,7 @@ void Waveform::on_drawingarea_drag_translation_end(double offset_x, double offse
 
 void Waveform::set_selection_bounds(int _selection_start, int _selection_end)
 {
+
     selection_start = std::clamp(_selection_start, 0, (int)sound.get_frame_count() - 1);
     selection_end = std::clamp(_selection_end, 0, (int)sound.get_frame_count() - 1);
 
