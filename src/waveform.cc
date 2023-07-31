@@ -488,6 +488,7 @@ void Waveform::draw_sound()
 
     cr->set_source_rgb(1.0, 0.5, 0.25);
     double visible_frames = (double)(visible_end - visible_start);
+    float * sound_data = sound.get_sound_data();
     for (int i = 0; i < sw; i++)
     {
         long p0 = visible_start + (long)(((double)i / (double)sw) * visible_frames);
@@ -504,7 +505,7 @@ void Waveform::draw_sound()
         float min = 1;
         for (int j = p0; j <= p1; j++)
         {
-            float value = sound.ptr[j];
+            float value = sound_data[j];
             max = std::max(max, value);
             min = std::min(min, value);
         }

@@ -15,5 +15,6 @@ public:
   bool is_loaded();
   sf_count_t get_frame_count();
   int get_samplerate();
+  float * get_sound_data();
 };
 #endif
