@@ -1,6 +1,10 @@
 #include "./waveform.h"
 #include <cairo.h>
 
+std::string Waveform::ScaleUnit::to_string() const
+{
+    return "period: " + std::to_string(m_period_s) + "s" + " " + "low bound: " + std::to_string(m_display_low_bound_px) + "px" + " " + "height: " + std::to_string(m_display_height_px) + "px" + " " + "name: " + m_name + " " + "name period: " + std::to_string(m_name_period_s);
+}
 Waveform::ScaleUnit::ScaleUnit(double period_s, double display_low_bound_px, double display_height_px, std::string name, double name_period_s)
 {
     m_period_s = period_s;
@@ -67,10 +71,34 @@ std::string Waveform::ScaleUnit::duration_display_string(double seconds) const
     //
     // return "super";
 }
-
-std::string Waveform::ScaleUnit::to_string() const
+std::string Waveform::regular_timecode_display(double seconds) const
 {
-    return "period: " + std::to_string(m_period_s) + "s" + " " + "low bound: " + std::to_string(m_display_low_bound_px) + "px" + " " + "height: " + std::to_string(m_display_height_px) + "px" + " " + "name: " + m_name + " " + "name period: " + std::to_string(m_name_period_s);
+    int d_hours = std::floor(seconds / 3600.0);
+    seconds -= (double)d_hours * 3600;
+    int d_minutes = std::floor(seconds / 60.0);
+    seconds -= (double)d_minutes * 60;
+    int d_seconds = std::floor(seconds);
+    seconds -= (double)d_seconds;
+    int d_milliseconds = std::floor(1000 * seconds);
+
+    std::string s = "";
+    s += std::to_string(d_hours);
+    s += ":";
+    {
+        std::string unpadded = std::to_string(d_minutes);
+        s += std::string(2 - unpadded.length(), '0') + unpadded;
+    }
+    s += ":";
+    {
+        std::string unpadded = std::to_string(d_seconds);
+        s += std::string(2 - unpadded.length(), '0') + unpadded;
+    }
+    s += ":";
+    {
+        std::string unpadded = std::to_string(d_milliseconds);
+        s += std::string(4 - unpadded.length(), '0') + unpadded;
+    }
+    return s;
 }
 Waveform::Waveform()
 {
@@ -79,18 +107,18 @@ Waveform::Waveform()
     hack_sound_end = NULL;
 
     // m_scale_units.push_back(Waveform::ScaleUnit(10, 10, 40.0));
-    m_scale_units.push_back(Waveform::ScaleUnit(600.0, 10, 21.0, "s", 1.0));
-    m_scale_units.push_back(Waveform::ScaleUnit(300.0, 10, 20.0, "s", 1.0));
+    // m_scale_units.push_back(Waveform::ScaleUnit(600.0, 10, 21.0, "s", 1.0));
+    // m_scale_units.push_back(Waveform::ScaleUnit(300.0, 10, 20.0, "s", 1.0));
     m_scale_units.push_back(Waveform::ScaleUnit(60.0, 10, 19.0, "s", 1.0));
-    m_scale_units.push_back(Waveform::ScaleUnit(30.0, 10, 17.0, "s", 1.0));
-    m_scale_units.push_back(Waveform::ScaleUnit(10.0, 10, 16.0, "s", 1.0));
-    m_scale_units.push_back(Waveform::ScaleUnit(5.0, 10, 15.0, "s", 1.0));
+    // m_scale_units.push_back(Waveform::ScaleUnit(30.0, 10, 17.0, "s", 1.0));
+    // m_scale_units.push_back(Waveform::ScaleUnit(10.0, 10, 16.0, "s", 1.0));
+    // m_scale_units.push_back(Waveform::ScaleUnit(5.0, 10, 15.0, "s", 1.0));
     m_scale_units.push_back(Waveform::ScaleUnit(1.0, 10, 14.0, "s", 1.0));
-    m_scale_units.push_back(Waveform::ScaleUnit(0.5, 10, 12.0, "ms", 0.001));
+    // m_scale_units.push_back(Waveform::ScaleUnit(0.5, 10, 12.0, "ms", 0.001));
     m_scale_units.push_back(Waveform::ScaleUnit(0.1, 10, 11.0, "ms", 0.001));
-    m_scale_units.push_back(Waveform::ScaleUnit(0.05, 10, 9.0, "ms", 0.001));
+    // m_scale_units.push_back(Waveform::ScaleUnit(0.05, 10, 9.0, "ms", 0.001));
     m_scale_units.push_back(Waveform::ScaleUnit(0.01, 10, 8.0, "ms", 0.001));
-    m_scale_units.push_back(Waveform::ScaleUnit(0.005, 10, 6.0, "ms", 0.001));
+    // m_scale_units.push_back(Waveform::ScaleUnit(0.005, 10, 6.0, "ms", 0.001));
     m_scale_units.push_back(Waveform::ScaleUnit(0.001, 10, 5.0, "ms", 0.001));
 
     signal_resize().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_resize));
@@ -138,7 +166,7 @@ Waveform::Waveform()
     add_controller(m_Mousemotion);
     m_Mousemotion->signal_motion().connect(sigc::mem_fun(*this, &Waveform::on_mouse_motion));
 
-    mouse_inside = false;
+    m_mouse_hover = false;
     m_Mousemotion = Gtk::EventControllerMotion::create();
     add_controller(m_Mousemotion);
     m_Mousemotion->signal_motion().connect(sigc::mem_fun(*this, &Waveform::on_mouse_motion));
@@ -158,11 +186,11 @@ bool Waveform::on_vbl_timeout()
 }
 void Waveform::on_mouse_leave()
 {
-    mouse_inside = false;
+    m_mouse_hover = false;
 }
 void Waveform::on_mouse_enter(double x, double y)
 {
-    mouse_inside = true;
+    m_mouse_hover = true;
     mouse_x = x;
     mouse_y = y;
     m_text_surface_dirty = true;
@@ -170,7 +198,7 @@ void Waveform::on_mouse_enter(double x, double y)
 }
 void Waveform::on_mouse_motion(double x, double y)
 {
-
+    m_mouse_hover = true;
     mouse_x = x;
     mouse_y = y;
 
@@ -316,7 +344,7 @@ void Waveform::draw_scale()
                 continue;
 
             used_positions.insert((int)x);
-            cr->set_source_rgba(0.5, 1.0, 0.5, 0.5);
+            cr->set_source_rgba(1.0,1.0,1.0, 0.5);
 
             cr->rectangle(std::round(x), vh - unit_display_height_px, 1, vh);
             cr->fill();
@@ -330,7 +358,8 @@ void Waveform::draw_scale()
             caption_scale_unit = &scale_unit;
         }
     }
-    if (caption_scale_unit != NULL)
+
+    if ((false) && (caption_scale_unit != NULL))
     {
         printf("caption_scale_unit::::: %s\n", caption_scale_unit->to_string().c_str());
         double unit_length_s = caption_scale_unit->m_period_s;                   // 0.1;
@@ -380,18 +409,22 @@ void Waveform::draw_text()
 
     cr->set_font_size(font_size);
     cr->set_source_rgb(1.0, 1.0, 1.0);
-    cr->move_to(margin_left, pos_y);
-    cr->show_text(std::to_string(left_s) + " s");
-    pos_y += line_height;
+    /*
+        cr->move_to(margin_left, pos_y);
+        cr->show_text(std::to_string(left_s) + " s");
+        pos_y += line_height;
 
-    cr->move_to(margin_left, pos_y);
-    cr->show_text(std::to_string(right_s) + " s");
-    pos_y += line_height;
-
-    float mouse_s = (float)get_frame_number_at(mouse_x) / (float)sound.sfinfo.samplerate;
-    cr->move_to(margin_left, pos_y);
-    cr->show_text(std::to_string(mouse_s) + " s");
-    pos_y += line_height;
+        cr->move_to(margin_left, pos_y);
+        cr->show_text(std::to_string(right_s) + " s");
+        pos_y += line_height;
+    */
+    if (m_mouse_hover)
+    {
+        float mouse_s = (float)get_frame_number_at(mouse_x) / (float)sound.sfinfo.samplerate;
+        cr->move_to(margin_left, pos_y);
+        cr->show_text(regular_timecode_display(mouse_s));
+        pos_y += line_height;
+    }
 }
 void Waveform::draw_position()
 {

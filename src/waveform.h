@@ -56,7 +56,7 @@ public:
     void on_drawingarea_drag_translation_end(double offset_x, double offset_y);
     long translation_initial_visible_start;
     long translation_initial_visible_end;
-
+    
     class ScaleUnit
     {
     public:
@@ -71,6 +71,7 @@ public:
         
     };
     std::list<ScaleUnit> m_scale_units;
+    std::string regular_timecode_display(double seconds) const;
 
     // bool has_selection;
     long selection_start;
@@ -86,8 +87,8 @@ public:
     void on_mouse_motion(double x, double y);
     void on_mouse_leave();
     void on_mouse_enter(double x, double y);
-    bool mouse_inside;
     double mouse_x, mouse_y;
+    bool m_mouse_hover;
 
     Glib::RefPtr<Gtk::EventControllerScroll> m_Scroll;
     void on_drawingarea_scroll_begin();
