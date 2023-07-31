@@ -122,7 +122,6 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
 {
   set_title(APPLICATION_NAME);
   set_default_size(600, 250);
-
   // sound.load("/home/vivien/Bureau/redhouse-clip-mono-short.flac");
   //  sound.load("/home/vivien/Bureau/redhouse-mono.wav");
   //  hack

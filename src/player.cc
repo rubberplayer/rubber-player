@@ -21,6 +21,7 @@ Player::Player()
     set_sound_end(0);
     m_play_started.store(false);
     m_terminate_the_play_thread.store(false);
+
     RubberBand::RubberBandStretcher::Options rubberband_options = RubberBand::RubberBandStretcher::DefaultOptions | RubberBand::RubberBandStretcher::OptionProcessRealTime;
     rubberBandStretcher = new RubberBand::RubberBandStretcher(48000, 1, rubberband_options);
 
@@ -58,7 +59,7 @@ void Player::play_always()
 
     pa_sample_spec pass;
     pass.format = PA_SAMPLE_FLOAT32;
-    pass.channels = 1;    
+    pass.channels = 1;
     pass.rate = 48000; // 44100;
 
     pa_simple *pas = pa_simple_new(NULL,             // Use the default server.
@@ -147,7 +148,8 @@ void Player::play_always()
         rubberBandStretcher->setTimeRatio(time_ratio);
         rubberBandStretcher->setPitchScale(pitch_scale);
 
-        // printf("sound samplerate : %d ; channels : %d, selection [%d,%d] ; pitch scale : %f ; time_ratio : %f, position : %d, time position : %f\n", m_sound->sfinfo.samplerate, m_sound->sfinfo.channels, selection_left, selection_right, pitch_scale, time_ratio, position, time_position);
+        printf("sound samplerate : %d ; channels : %d, selection [%d,%d] ; pitch scale : %f ; time_ratio : %f, position : %d, time position : %f\n",
+               m_sound->sfinfo.samplerate, m_sound->sfinfo.channels, selection_left, selection_right, pitch_scale, time_ratio, position, time_position);
 
         if (position < selection_left)
             position = selection_left;

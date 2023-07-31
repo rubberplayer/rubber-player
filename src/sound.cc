@@ -1,10 +1,12 @@
 #include "./sound.h"
 Sound::Sound()
 {
+  printf("** create a sound\n");
   ptr = NULL;
 }
 Sound::~Sound()
 {
+  printf("** destroys a sound\n");
 }
 void Sound::load(std::string ppath)
 {
