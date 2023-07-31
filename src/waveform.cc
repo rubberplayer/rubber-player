@@ -105,6 +105,7 @@ Waveform::Waveform()
     // hack
     hack_sound_start = NULL;
     hack_sound_end = NULL;
+    hack_sound_position = NULL;
 
     // m_scale_units.push_back(Waveform::ScaleUnit(10, 10, 40.0));
     // m_scale_units.push_back(Waveform::ScaleUnit(600.0, 10, 21.0, "s", 1.0));
@@ -121,23 +122,26 @@ Waveform::Waveform()
     // m_scale_units.push_back(Waveform::ScaleUnit(0.005, 10, 6.0, "ms", 0.001));
     m_scale_units.push_back(Waveform::ScaleUnit(0.001, 10, 5.0, "ms", 0.001));
 
+    // resize event
     signal_resize().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_resize));
+
+    // draw event
     set_draw_func(sigc::mem_fun(*this, &Waveform::on_drawingarea_draw));
 
+    // selection (drag)
     m_Drag_selection = Gtk::GestureDrag::create();
     m_Drag_selection->set_button(GDK_BUTTON_PRIMARY);
     add_controller(m_Drag_selection);
-
     selection_hot_handle = SelectionHotHandle::NONE;
     proximity_hot_handle = SelectionHotHandle::NONE;
     m_Drag_selection->signal_drag_begin().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_selection_begin));
     m_Drag_selection->signal_drag_update().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_selection_update));
     m_Drag_selection->signal_drag_end().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_selection_end));
 
+    // translation (drag)
     m_Drag_translation = Gtk::GestureDrag::create();
     m_Drag_translation->set_button(GDK_BUTTON_SECONDARY); // GDK_BUTTON_MIDDLE
     add_controller(m_Drag_translation);
-
     m_Drag_translation->signal_drag_begin().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_translation_begin));
     m_Drag_translation->signal_drag_update().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_translation_update));
     m_Drag_translation->signal_drag_end().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_translation_end));
@@ -149,31 +153,31 @@ Waveform::Waveform()
     m_position_surface_dirty = true;
     m_text_surface_dirty = true;
     create_draw_surface();
-
     set_selection_bounds(0, 0);
 
+    // zoom (scroll wheel)
     m_Scroll = Gtk::EventControllerScroll::create();
     m_Scroll->set_flags(Gtk::EventControllerScroll::Flags::BOTH_AXES);
     add_controller(m_Scroll);
     m_Scroll->signal_scroll_begin().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_scroll_begin));
     m_Scroll->signal_scroll().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_scroll), true);
 
-    m_Keypressed = Gtk::EventControllerKey::create();
-    add_controller(m_Keypressed);
-    m_Keypressed->signal_key_pressed().connect(sigc::mem_fun(*this, &Waveform::on_key_pressed), false);
-
+    // pointer position
     m_Mousemotion = Gtk::EventControllerMotion::create();
     add_controller(m_Mousemotion);
-    m_Mousemotion->signal_motion().connect(sigc::mem_fun(*this, &Waveform::on_mouse_motion));
-
     m_mouse_hover = false;
-    m_Mousemotion = Gtk::EventControllerMotion::create();
-    add_controller(m_Mousemotion);
     m_Mousemotion->signal_motion().connect(sigc::mem_fun(*this, &Waveform::on_mouse_motion));
     m_Mousemotion->signal_enter().connect(sigc::mem_fun(*this, &Waveform::on_mouse_enter));
     m_Mousemotion->signal_leave().connect(sigc::mem_fun(*this, &Waveform::on_mouse_leave));
 
+    // fast periodic call for play position redraw
     Glib::signal_timeout().connect(sigc::mem_fun(*this, &Waveform::on_vbl_timeout), 1000 / 20);
+
+    // key event are not passed 
+    // m_Keypressed = Gtk::EventControllerKey::create();
+    // add_controller(m_Keypressed);
+    // m_Keypressed->signal_key_pressed().connect(sigc::mem_fun(*this, &Waveform::on_key_pressed), false);
+
 }
 
 bool Waveform::on_vbl_timeout()
@@ -209,11 +213,10 @@ void Waveform::on_mouse_motion(double x, double y)
     queue_draw();
 }
 
-bool Waveform::on_key_pressed(const unsigned int a, const unsigned int b, const Gdk::ModifierType c)
-{
-    printf("I am here KEYRPESS %d %d \n", a, b);
-    return true;
-}
+// bool Waveform::on_key_pressed(const unsigned int a, const unsigned int b, const Gdk::ModifierType c)
+// {
+//     return true;
+// }
 void Waveform::set_sound(Sound _sound)
 {
     sound = _sound;
@@ -322,7 +325,7 @@ void Waveform::draw_scale()
         double pixel_per_second = vw / visible_length_s;
         double pixel_per_unit = unit_length_s * pixel_per_second;
 
-//        printf("p/s: %f ; unit : %f p/u : %f \n", pixel_per_second, unit_length_s, pixel_per_unit);
+        //        printf("p/s: %f ; unit : %f p/u : %f \n", pixel_per_second, unit_length_s, pixel_per_unit);
 
         double show_unit_low_bound_px = 20.0;
         int caption_shown_count = 0;
@@ -343,7 +346,7 @@ void Waveform::draw_scale()
                 continue;
 
             used_positions.insert((int)x);
-            cr->set_source_rgba(1.0,1.0,1.0, 0.5);
+            cr->set_source_rgba(1.0, 1.0, 1.0, 0.5);
 
             cr->rectangle(std::round(x), vh - unit_display_height_px, 1, vh);
             cr->fill();
@@ -360,7 +363,7 @@ void Waveform::draw_scale()
 
     if ((false) && (caption_scale_unit != NULL))
     {
-        //printf("caption_scale_unit::::: %s\n", caption_scale_unit->to_string().c_str());
+        // printf("caption_scale_unit::::: %s\n", caption_scale_unit->to_string().c_str());
         double unit_length_s = caption_scale_unit->m_period_s;                   // 0.1;
         double unit_display_height_px = caption_scale_unit->m_display_height_px; // scale_unit.m_period_s 20;
 
@@ -407,7 +410,7 @@ void Waveform::draw_text()
     float pos_y = margin_top;
 
     cr->set_font_size(font_size);
-    cr->set_source_rgb(1.0, 1.0, 1.0);    
+    cr->set_source_rgb(1.0, 1.0, 1.0);
     if (m_mouse_hover)
     {
         float mouse_s = (float)get_frame_number_at(mouse_x) / (float)sound.get_samplerate();
@@ -430,11 +433,14 @@ void Waveform::draw_position()
     auto sw = m_waveform_surface->get_width();
     auto sh = m_waveform_surface->get_height();
 
-    long position = hack_sound_position->load();
-    double left = get_pixel_at(position);
-    cr->set_source_rgba(1.0, 1.0, 1.0, 1.0);
-    cr->rectangle(left, 0, 1, sh);
-    cr->fill();
+    if (hack_sound_position != NULL)
+    {
+        long position = hack_sound_position->load();
+        double left = get_pixel_at(position);
+        cr->set_source_rgba(1.0, 1.0, 1.0, 1.0);
+        cr->rectangle(left, 0, 1, sh);
+        cr->fill();
+    }
 }
 void Waveform::draw_selection()
 {
@@ -488,7 +494,7 @@ void Waveform::draw_sound()
 
     cr->set_source_rgb(1.0, 0.5, 0.25);
     double visible_frames = (double)(visible_end - visible_start);
-    float * sound_data = sound.get_sound_data();
+    float *sound_data = sound.get_sound_data();
     for (int i = 0; i < sw; i++)
     {
         long p0 = visible_start + (long)(((double)i / (double)sw) * visible_frames);

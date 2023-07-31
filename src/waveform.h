@@ -56,7 +56,7 @@ public:
     void on_drawingarea_drag_translation_end(double offset_x, double offset_y);
     long translation_initial_visible_start;
     long translation_initial_visible_end;
-    
+
     class ScaleUnit
     {
     public:
@@ -68,7 +68,6 @@ public:
         std::string to_string() const;
         std::string duration_display_string(double seconds) const;
         ScaleUnit(double period_s, double display_low_bound_px, double display_height_px, std::string name, double name_period_s);
-        
     };
     std::list<ScaleUnit> m_scale_units;
     std::string regular_timecode_display(double seconds) const;
@@ -80,8 +79,8 @@ public:
     long get_frame_number_at(double offset_x);
     double get_pixel_at(long frame);
 
-    Glib::RefPtr<Gtk::EventControllerKey> m_Keypressed;
-    bool on_key_pressed(const unsigned int a, const unsigned int b, const Gdk::ModifierType c);
+    //    Glib::RefPtr<Gtk::EventControllerKey> m_Keypressed;
+    //    bool on_key_pressed(const unsigned int a, const unsigned int b, const Gdk::ModifierType c);
 
     Glib::RefPtr<Gtk::EventControllerMotion> m_Mousemotion;
     void on_mouse_motion(double x, double y);
