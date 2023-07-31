@@ -243,7 +243,7 @@ void Waveform::draw_selection()
     cr->fill();
 
     cr->set_source_rgba(1.0, 1.0, 1.0, 0.9);
-    if (proximity_hot_handle != Waveform::NONE)
+    if ((proximity_hot_handle != Waveform::NONE) && (left != right))
     {
         float half_radius = 6.0;
         float half_separation = 8.0;
