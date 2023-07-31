@@ -17,6 +17,8 @@
 ///
 /// https://docs.gtk.org/gtk4/class.FileDialog.html since 4.10
 ///
+// char** GLOBAL_ARGV;
+
 class TimeRatioRange
 {
 public:
@@ -96,6 +98,8 @@ public:
   Player player;
   Sound sound;
 
+  // Gtk::FileDialog m_FileDialog_open_audio_file;
+
   Glib::RefPtr<Gtk::FileChooserNative> m_Dialog_open_audio_file;
   void on_folder_dialog_response(int response_id, Glib::RefPtr<Gtk::FileChooserNative> &m_Dialog_open_audio_file);
 
@@ -121,18 +125,21 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
                            m_Button_open("open", true)
 /*m_Button_load("play", true)*/
 {
+    set_title(APPLICATION_NAME);
+  set_default_size(600, 250);
 
+  //  std::string filename(GLOBAL_ARGV[1]);
+  // printf("OPENING %s\n",filename.c_str());
   //  sound.load("/home/vivien/Bureau/redhouse-clip-mono-short.flac");
-  sound.load("/home/vivien/Bureau/redhouse-clip-mono.flac");
-//  sound.load("/home/vivien/Bureau/redhouse-mono.wav");
-  m_Waveform.set_sound(sound);
-  player.set_sound(&sound);
-
-  m_Waveform.set_hack_sound_start_sound_end_sound_position(&player.m_sound_start, &player.m_sound_end, &player.m_sound_position);
+  // sound.load( filename.c_str() );
+  // sound.load("/home/vivien/Bureau/redhouse-mono.wav");
   // hack
 
-  set_title(APPLICATION_NAME);
-  set_default_size(600, 250);
+  sound.load("/home/vivien/Bureau/redhouse-clip-mono.flac");
+  m_Waveform.set_sound(sound);
+  player.set_sound(&sound);
+  m_Waveform.set_hack_sound_start_sound_end_sound_position(&player.m_sound_start, &player.m_sound_end, &player.m_sound_position);
+
 
   m_VBox.set_margin(16);
   set_child(m_VBox);
@@ -177,28 +184,28 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
 
   m_VBox.append(m_Button_play);
   m_VBox.append(m_Button_open);
-  // m_VBox.append(m_Button_load);
+  //  m_VBox.append(m_Button_load);
 
   m_Button_play.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_play_clicked));
   m_Button_open.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_open_clicked));
   // m_Button_load.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_load_clicked));
 
-  m_Dialog_open_audio_file = Gtk::FileChooserNative::create("Please choose a folder",
+  m_Dialog_open_audio_file = Gtk::FileChooserNative::create("Please choose an audio file",
                                                             *this,
                                                             Gtk::FileChooser::Action::OPEN,
                                                             "Choose",
                                                             "Cancel");
-
   m_Dialog_open_audio_file->set_transient_for(*this);
   m_Dialog_open_audio_file->set_modal(true);
   m_Dialog_open_audio_file->signal_response().connect(sigc::bind(sigc::mem_fun(*this,
                                                                                &MainWindow::on_folder_dialog_response),
                                                                  m_Dialog_open_audio_file)); // <- error
 
-  m_Keypressed = Gtk::EventControllerKey::create();
+/*  
+m_Keypressed = Gtk::EventControllerKey::create();
   add_controller(m_Keypressed);
-
   m_Keypressed->signal_key_pressed().connect(sigc::mem_fun(*this, &MainWindow::on_key_pressed), false);
+  */
 }
 
 void MainWindow::on_time_ratio_value_changed()
@@ -223,11 +230,6 @@ void MainWindow::on_button_play_clicked()
   // player.play_forever();
 }
 
-int main(int argc, char *argv[])
-{
-  auto app = Gtk::Application::create(); //"org.gtkmm.examples.base");
-  return app->make_window_and_run<MainWindow>(argc, argv);
-}
 /*void MainWindow::on_button_load_clicked()
 {
   sound.load("/home/vivien/Bureau/redhouse-clip-mono.flac");
@@ -235,9 +237,11 @@ int main(int argc, char *argv[])
   // player.play_some(sound.ptr, sound.read_count); //* sizeof(float));
 }
 */
+
 void MainWindow::on_button_open_clicked()
 {
-  m_Dialog_open_audio_file->show();
+  // m_FileDialog_open_audio_file->open();
+   m_Dialog_open_audio_file->show();
   // sound = Sound();
   //  dialog.hide();
 }
@@ -258,13 +262,14 @@ void MainWindow::on_folder_dialog_response(int response_id, Glib::RefPtr<Gtk::Fi
   m_Dialog_open_audio_file->hide();
 }
 
+/*
 bool MainWindow::on_key_pressed(const unsigned int a, const unsigned int b, const Gdk::ModifierType c)
 {
-  // void Waveform::on_key_pressed(guint keyval, int keycode, Gdk::ModifierType state){
-
-  // printf("has ctrl : %d ; has shift : %d \n", c & Gdk::ModifierType::CONTROL_MASK,c & Gdk::ModifierType::SHIFT_MASK);
-
-  // printf("I am here KEYRPESS %d %d  %d \n", a, b, GDK_KEY_plus);
-  //  KEY_KP_Add
   return true;
+}
+*/
+int main(int argc, char *argv[])
+{
+  auto app = Gtk::Application::create(); //"org.gtkmm.examples.base");
+  return app->make_window_and_run<MainWindow>(argc, argv);
 }
