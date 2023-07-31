@@ -35,3 +35,6 @@ sf_count_t Sound::get_frame_count()
 {
   return read_count;
 }
+int Sound::get_samplerate(){
+  return sfinfo.samplerate;
+}

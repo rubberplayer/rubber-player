@@ -14,5 +14,6 @@ public:
   void load(std::string path);
   bool is_loaded();
   sf_count_t get_frame_count();
+  int get_samplerate();
 };
 #endif

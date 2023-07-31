@@ -301,8 +301,8 @@ void Waveform::draw_scale()
     double vw = (double)get_width();
     double vh = (double)get_height();
 
-    double visible_start_s = ((double)visible_start) / ((double)sound.sfinfo.samplerate);
-    double visible_end_s = ((double)visible_end) / ((double)sound.sfinfo.samplerate);
+    double visible_start_s = ((double)visible_start) / ((double)sound.get_samplerate());
+    double visible_end_s = ((double)visible_end) / ((double)sound.get_samplerate());
     double visible_length_s = visible_end_s - visible_start_s;
 
     std::set<int> used_positions;
@@ -334,7 +334,7 @@ void Waveform::draw_scale()
         int label_count = 0;
         for (double x_s = left_s; x_s <= right_s; x_s += unit_length_s)
         {
-            double x = get_pixel_at((long)(x_s * ((double)sound.sfinfo.samplerate)));
+            double x = get_pixel_at((long)(x_s * ((double)sound.get_samplerate())));
 
             if (!((x_s >= visible_start_s) && (x_s < visible_end_s)))
                 continue;
@@ -368,7 +368,7 @@ void Waveform::draw_scale()
         double right_s = std::ceil(visible_end_s / unit_length_s) * unit_length_s;
         for (double x_s = left_s; x_s <= right_s; x_s += unit_length_s)
         {
-            double x = get_pixel_at((long)(x_s * ((double)sound.sfinfo.samplerate)));
+            double x = get_pixel_at((long)(x_s * ((double)sound.get_samplerate())));
             if (!((x_s >= visible_start_s) && (x_s < visible_end_s)))
                 continue;
 
@@ -398,8 +398,8 @@ void Waveform::draw_text()
     /*    float left =  ((float)selection_start) / ((float)sound.get_frame_count()); //* (float)sw;
         float right = ((float)selection_end) / ((float)sound.get_frame_count());// * (float)sw;
       */
-    float left_s = ((float)selection_start) / (float)sound.sfinfo.samplerate;
-    float right_s = ((float)selection_end) / (float)sound.sfinfo.samplerate;
+    float left_s = ((float)selection_start) / (float)sound.get_samplerate();
+    float right_s = ((float)selection_end) / (float)sound.get_samplerate();
     float margin_top = font_size * 1.1;
     float line_height = font_size;
     float margin_left = 5;
@@ -407,19 +407,10 @@ void Waveform::draw_text()
     float pos_y = margin_top;
 
     cr->set_font_size(font_size);
-    cr->set_source_rgb(1.0, 1.0, 1.0);
-    /*
-        cr->move_to(margin_left, pos_y);
-        cr->show_text(std::to_string(left_s) + " s");
-        pos_y += line_height;
-
-        cr->move_to(margin_left, pos_y);
-        cr->show_text(std::to_string(right_s) + " s");
-        pos_y += line_height;
-    */
+    cr->set_source_rgb(1.0, 1.0, 1.0);    
     if (m_mouse_hover)
     {
-        float mouse_s = (float)get_frame_number_at(mouse_x) / (float)sound.sfinfo.samplerate;
+        float mouse_s = (float)get_frame_number_at(mouse_x) / (float)sound.get_samplerate();
         cr->move_to(margin_left, pos_y);
         cr->show_text(regular_timecode_display(mouse_s));
         pos_y += line_height;
