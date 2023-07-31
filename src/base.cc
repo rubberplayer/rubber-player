@@ -20,8 +20,8 @@
 class TimeRatioRange
 {
 public:
-  double display_min = -4;
-  double display_max = 2;
+  double display_min = -2;
+  double display_max = 4;
   double get_value_for_display(double display_value)
   {
     return std::pow(2, display_value);
@@ -147,7 +147,7 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
 
   // m_Scale_time_ratio.set_digits(5);
 
-  m_Label_time_ratio.set_text("Time Ratio");
+  m_Label_time_ratio.set_text("Time Ratio"); // 🐢
   m_Label_time_ratio.set_valign(Gtk::Align::END);
   m_Label_time_ratio.set_margin_bottom(8);
   m_Label_time_ratio.set_margin_start(4);
@@ -160,7 +160,7 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
   m_Scale_time_ratio.set_hexpand();
   m_Scale_time_ratio.signal_value_changed().connect(sigc::mem_fun(*this, &MainWindow::on_time_ratio_value_changed));
 
-  double marks[] = {1.0, -1.0, -2.0, 0.0, 666.0};
+  double marks[] = {1.0, -1.0, 2.0, 3.0, 0.0, 666.0};
   int i_mark = 0;
   for (;;)
   {
@@ -263,7 +263,7 @@ bool MainWindow::on_key_pressed(const unsigned int a, const unsigned int b, cons
 
   // printf("has ctrl : %d ; has shift : %d \n", c & Gdk::ModifierType::CONTROL_MASK,c & Gdk::ModifierType::SHIFT_MASK);
 
-   //printf("I am here KEYRPESS %d %d  %d \n", a, b, GDK_KEY_plus);
+  // printf("I am here KEYRPESS %d %d  %d \n", a, b, GDK_KEY_plus);
   //  KEY_KP_Add
   return true;
 }

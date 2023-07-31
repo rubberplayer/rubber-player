@@ -173,6 +173,9 @@ void Player::play_always()
     printf("is pas object null ? %d \n", pas);
 
     long position = 0;
+    size_t rubberband_output_block_size = 2 * 3 * 4 * 5 * 6 * 7 * 256;
+    float *rubberband_output = (float *)malloc(rubberband_output_block_size * sizeof(float));
+
     using namespace std::chrono_literals;
     for (;;)
     {
@@ -211,27 +214,42 @@ void Player::play_always()
             position = selection_left;
 
         void *sound_pointer = m_sound->ptr + position;
-        long block_size = 256 * 4; // 48000 * 4; // 256;
 
+        size_t samples_requiered = rubberBandStretcher->getSamplesRequired();
+
+        long max_block_size = 256 * 4;
+        long block_size = std::min(max_block_size, (long)samples_requiered);
+        //printf("samples_required %d, block_size %d\n",samples_requiered,block_size);
         if ((position + block_size) >= selection_right)
         {
             block_size = selection_right - position;
         }
+        float *ppp = m_sound->ptr + position;
+        bool last_process = false;
+        rubberBandStretcher->process(&ppp, block_size, last_process);
 
-        int pa_write_error;
-        pa_simple_write(pas, sound_pointer, block_size * sizeof(float), &pa_write_error);
-
-        if (pa_write_error != 0)
+        int available = rubberBandStretcher->available();
+        int retrieve_from_rubberband_size = std::min((int)rubberband_output_block_size, available);
+        if (retrieve_from_rubberband_size > 0)
         {
-            printf("error while playing ? %d : %s\n", pa_write_error, pa_strerror(pa_write_error));
+            //printf("retrieve %d\n",retrieve_from_rubberband_size);
+            rubberBandStretcher->retrieve(&rubberband_output, retrieve_from_rubberband_size);
+
+            int pa_write_error;
+            pa_simple_write(pas, (void*)rubberband_output, retrieve_from_rubberband_size * sizeof(float), &pa_write_error);
+
+            if (pa_write_error != 0)
+            {
+                printf("error while playing ? %d : %s\n", pa_write_error, pa_strerror(pa_write_error));
+            }
         }
         position += block_size;
 
         m_sound_position.store(position);
 
-        float block_duration_ms = 1000.0 * ((float)block_size) / ((float)(m_sound->sfinfo.samplerate));
-        //printf("block duration %f ms\n", block_duration_ms);
-        long bloc_duration_ms_long = (long)std::floor(block_duration_ms);
+        // float block_duration_ms = 1000.0 * ((float)block_size) / ((float)(m_sound->sfinfo.samplerate));
+        // printf("block duration %f ms\n", block_duration_ms);
+        // long bloc_duration_ms_long = (long)std::floor(block_duration_ms);
         if (block_size == 0)
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(16));
