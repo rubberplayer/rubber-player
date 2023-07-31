@@ -26,17 +26,9 @@ Player::Player()
     set_sound_end(0);
     m_play_started.store(false);
     m_terminate_the_play_thread.store(false);
-
-    RubberBand::RubberBandStretcher::Options rubberband_options = RubberBand::RubberBandStretcher::DefaultOptions | RubberBand::RubberBandStretcher::OptionProcessRealTime;
-    rubberBandStretcher = new RubberBand::RubberBandStretcher(48000, 1, rubberband_options);
-
-    printf("RubberBand engine version : %d\n", rubberBandStretcher->getEngineVersion());
-    printf("RubberBand engine channel count : %d\n", rubberBandStretcher->getChannelCount());
-    //    connect_to_pulseaudio();
 }
 void Player::connect_to_pulseaudio(int channels, int framerate)
 {
-    printf("void Player::connect_to_pulseaudio(int channels, int framerate)\n");
     printf("connect to pulseaudio channels %d; framerate %d\n", channels, framerate);
     m_pa_sample_spec.format = PA_SAMPLE_FLOAT32;
     m_pa_sample_spec.channels = channels;
@@ -53,12 +45,17 @@ void Player::connect_to_pulseaudio(int channels, int framerate)
     );
     printf("is pa object null ? %d \n", m_pa_simple);
 };
-
+void Player::initialize_RubberBand(int channels, int samplerate)
+{
+    RubberBand::RubberBandStretcher::Options rubberband_options = RubberBand::RubberBandStretcher::DefaultOptions | RubberBand::RubberBandStretcher::OptionProcessRealTime;
+    rubberBandStretcher = new RubberBand::RubberBandStretcher(samplerate, channels, rubberband_options);
+    printf("RubberBand engine version : %d\n", rubberBandStretcher->getEngineVersion());
+}
 void Player::play_always()
 {
     printf("void Player::play_always()\n");
     connect_to_pulseaudio(m_sound->get_channels(), m_sound->get_samplerate());
-    printf("2\n");
+    initialize_RubberBand(m_sound->get_channels(), m_sound->get_samplerate());
 
     long position = 0;
     size_t rubberband_output_block_size = 2 * 3 * 4 * 5 * 6 * 7 * 256;
