@@ -58,7 +58,7 @@ void Player::play_always()
 
     pa_sample_spec pass;
     pass.format = PA_SAMPLE_FLOAT32;
-    pass.channels = 1;
+    pass.channels = 1;    
     pass.rate = 48000; // 44100;
 
     pa_simple *pas = pa_simple_new(NULL,             // Use the default server.

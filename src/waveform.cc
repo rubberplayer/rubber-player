@@ -629,8 +629,8 @@ void Waveform::on_drawingarea_drag_translation_end(double offset_x, double offse
 
 void Waveform::set_selection_bounds(int _selection_start, int _selection_end)
 {
-    selection_start = std::clamp(_selection_start, 0, (int)sound.read_count - 1);
-    selection_end = std::clamp(_selection_end, 0, (int)sound.read_count - 1);
+    selection_start = std::clamp(_selection_start, 0, (int)sound.get_frame_count() - 1);
+    selection_end = std::clamp(_selection_end, 0, (int)sound.get_frame_count() - 1);
 
     m_selection_surface_dirty = true;
 

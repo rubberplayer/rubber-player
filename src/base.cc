@@ -132,15 +132,16 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
   player.set_sound(&sound);
 
   m_Waveform.set_hack_sound_start_sound_end_sound_position(&player.m_sound_start, &player.m_sound_end, &player.m_sound_position);
-
+  
+  // vertical box container
   m_VBox.set_margin(16);
   set_child(m_VBox);
 
+  // waveform frame and Waveform (DrawingArea)
   m_VBox.append(m_Frame_Waveform);
   m_Waveform.set_content_width(100);
   m_Waveform.set_content_height(100);
   m_Waveform.set_expand();
-
   m_Frame_Waveform.set_child(m_Waveform);
 
   // time ratio label
