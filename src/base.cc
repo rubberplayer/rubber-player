@@ -204,7 +204,7 @@ void MainWindow::on_time_ratio_value_changed()
 {
   double value = m_time_ratio_range.get_value_for_display(m_Scale_time_ratio.get_value());
   m_Entry_time_ratio.get_buffer()->set_text(std::to_string(value));
-  player.set_pitch_scale(value);
+  player.set_time_ratio(value);
 }
 void MainWindow::on_button_play_clicked()
 {

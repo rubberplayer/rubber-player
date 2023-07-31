@@ -16,6 +16,7 @@ Player::~Player()
 Player::Player()
 {
     set_pitch_scale(1);
+    set_time_ratio(1);
     set_sound_start(0);
     set_sound_end(0);
     m_play_started.store(false);
@@ -191,9 +192,17 @@ void Player::play_always()
         long selection_left = std::min(selection_start, selection_end);
         long selection_right = std::max(selection_start, selection_end);
 
+        if (selection_right == selection_left)
+        {
+            // collapesed selection
+            selection_right = m_sound->read_count;
+        }
         double pitch_scale = m_pitch_scale.load();
-        printf("sound samplerate : %d ; channels : %d, selection [%d,%d] ; pitch scale : %f ; position : %d, time position : %f\n",
-               m_sound->sfinfo.samplerate, m_sound->sfinfo.channels, selection_left, selection_right, pitch_scale, position, time_position);
+        double time_ratio = m_time_ratio.load();
+        rubberBandStretcher->setTimeRatio(time_ratio);
+        rubberBandStretcher->setPitchScale(pitch_scale);
+
+        // printf("sound samplerate : %d ; channels : %d, selection [%d,%d] ; pitch scale : %f ; time_ratio : %f, position : %d, time position : %f\n", m_sound->sfinfo.samplerate, m_sound->sfinfo.channels, selection_left, selection_right, pitch_scale, time_ratio, position, time_position);
 
         if (position < selection_left)
             position = selection_left;
@@ -202,30 +211,29 @@ void Player::play_always()
             position = selection_left;
 
         void *sound_pointer = m_sound->ptr + position;
-        long block_size = 256*4;//48000 * 4; // 256;
-        int error;
+        long block_size = 256 * 4; // 48000 * 4; // 256;
 
         if ((position + block_size) >= selection_right)
         {
-            printf("cut\n");
             block_size = selection_right - position;
-
         }
 
-        pa_simple_write(pas, sound_pointer, block_size * sizeof(float), &error);
+        int pa_write_error;
+        pa_simple_write(pas, sound_pointer, block_size * sizeof(float), &pa_write_error);
 
-        if (error != 0)
+        if (pa_write_error != 0)
         {
-            printf("error while playing ? %d : %s\n", error, pa_strerror(error));
+            printf("error while playing ? %d : %s\n", pa_write_error, pa_strerror(pa_write_error));
         }
         position += block_size;
 
         m_sound_position.store(position);
-        
+
         float block_duration_ms = 1000.0 * ((float)block_size) / ((float)(m_sound->sfinfo.samplerate));
-        printf("block duration %f ms\n", block_duration_ms);
+        //printf("block duration %f ms\n", block_duration_ms);
         long bloc_duration_ms_long = (long)std::floor(block_duration_ms);
-        if (block_size == 0){
+        if (block_size == 0)
+        {
             std::this_thread::sleep_for(std::chrono::milliseconds(16));
         }
     }
@@ -266,6 +274,10 @@ void Player::set_sound(Sound *_sound)
 void Player::set_pitch_scale(double pitch_scale)
 {
     m_pitch_scale.store(pitch_scale);
+}
+void Player::set_time_ratio(double time_ratio)
+{
+    m_time_ratio.store(time_ratio);
 }
 void Player::set_sound_start(long sound_start)
 {

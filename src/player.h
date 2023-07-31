@@ -28,13 +28,15 @@ public:
   
   std::atomic<double> m_pitch_scale;
   void set_pitch_scale(double pitch_scale);
+  std::atomic<double> m_time_ratio;
+  void set_time_ratio(double time_ratio);
   
   std::atomic<long> m_sound_start;
   std::atomic<long> m_sound_end;
   void set_sound_start(long sound_start );
   void set_sound_end(long sound_end );
   std::atomic<long> m_sound_position;
-  
+
   Sound* m_sound;
 
   RubberBand::RubberBandStretcher *rubberBandStretcher;
