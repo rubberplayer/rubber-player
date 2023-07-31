@@ -8,7 +8,10 @@
 Player::~Player()
 {
     m_terminate_the_play_thread.store(true);
-    m_the_play_thread.join();
+    if (m_the_play_thread.joinable())
+    {
+        m_the_play_thread.join();
+    }
     if (m_pa_simple != NULL)
     {
         pa_simple_free(m_pa_simple);
@@ -17,6 +20,7 @@ Player::~Player()
     if (rubberBandStretcher != NULL)
     {
         delete rubberBandStretcher;
+        rubberBandStretcher = NULL;
     }
 }
 
@@ -29,7 +33,7 @@ Player::Player()
     set_sound_end(0);
     m_pa_simple = NULL;
     rubberBandStretcher = NULL;
-    
+
     m_play_started.store(false);
     m_terminate_the_play_thread.store(false);
 }
@@ -76,7 +80,7 @@ void Player::play_always()
     {
         if (m_terminate_the_play_thread.load() == true)
         {
-            return;
+            break;
         }
         bool l_play_started = m_play_started.load();
         if (l_play_started == false)
