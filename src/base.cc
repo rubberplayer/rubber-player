@@ -123,8 +123,8 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
 {
 
   //  sound.load("/home/vivien/Bureau/redhouse-clip-mono-short.flac");
-  //sound.load("/home/vivien/Bureau/redhouse-clip-mono.flac");
-  sound.load("/home/vivien/Bureau/redhouse-mono.wav");
+  sound.load("/home/vivien/Bureau/redhouse-clip-mono.flac");
+//  sound.load("/home/vivien/Bureau/redhouse-mono.wav");
   m_Waveform.set_sound(sound);
   player.set_sound(&sound);
 
