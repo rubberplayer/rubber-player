@@ -19,6 +19,14 @@ Waveform::Waveform()
     m_Drag_selection->signal_drag_update().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_selection_update));
     m_Drag_selection->signal_drag_end().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_selection_end));
 
+    m_Drag_translation = Gtk::GestureDrag::create();
+    m_Drag_translation->set_button(GDK_BUTTON_SECONDARY); // GDK_BUTTON_MIDDLE
+    add_controller(m_Drag_translation);
+
+    m_Drag_translation->signal_drag_begin().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_translation_begin));
+    m_Drag_translation->signal_drag_update().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_translation_update));
+    m_Drag_translation->signal_drag_end().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_translation_end));
+
     // has_selection = false;
     m_waveform_surface_dirty = true;
     m_selection_surface_dirty = true;
@@ -363,12 +371,44 @@ void Waveform::on_drawingarea_drag_selection_end(double offset_x, double offset_
     selection_hot_handle = SelectionHotHandle::NONE;
 }
 
+void Waveform::on_drawingarea_drag_translation_begin(double start_x, double start_y)
+{
+    translation_initial_visible_start = visible_start;
+    translation_initial_visible_end = visible_end;
+}
+void Waveform::on_drawingarea_drag_translation_update(double offset_x, double offset_y)
+{
+    long d_translation = get_frame_number_at(offset_x) - get_frame_number_at((long)0);
+
+    if ((translation_initial_visible_start - d_translation) < 0)
+    {
+        d_translation = translation_initial_visible_start;
+    }
+
+    if ((translation_initial_visible_end - d_translation) >= sound.get_frame_count())
+    {
+        d_translation = translation_initial_visible_end - sound.get_frame_count();
+    }
+
+    visible_start = translation_initial_visible_start - d_translation;
+    visible_end = translation_initial_visible_end - d_translation;
+
+    m_waveform_surface_dirty = true;
+    m_selection_surface_dirty = true;
+    m_text_surface_dirty = true;
+    queue_draw();
+}
+void Waveform::on_drawingarea_drag_translation_end(double offset_x, double offset_y)
+{
+}
+
 void Waveform::set_selection_bounds(int _selection_start, int _selection_end)
 {
     selection_start = std::clamp(_selection_start, 0, (int)sound.read_count - 1);
     selection_end = std::clamp(_selection_end, 0, (int)sound.read_count - 1);
 
     m_selection_surface_dirty = true;
+
     queue_draw();
 
     if (hack_sound_start != NULL)

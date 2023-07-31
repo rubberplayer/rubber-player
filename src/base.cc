@@ -263,7 +263,7 @@ bool MainWindow::on_key_pressed(const unsigned int a, const unsigned int b, cons
 
   // printf("has ctrl : %d ; has shift : %d \n", c & Gdk::ModifierType::CONTROL_MASK,c & Gdk::ModifierType::SHIFT_MASK);
 
-  // printf("I am here KEYRPESS %d %d  %d \n", a, b, GDK_KEY_plus);
+   //printf("I am here KEYRPESS %d %d  %d \n", a, b, GDK_KEY_plus);
   //  KEY_KP_Add
   return true;
 }

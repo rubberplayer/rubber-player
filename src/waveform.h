@@ -33,7 +33,6 @@ public:
     void draw_all();
 
     Glib::RefPtr<Gtk::GestureDrag> m_Drag_selection;
-
     void on_drawingarea_drag_selection_begin(double start_x, double start_y);
     void on_drawingarea_drag_selection_update(double offset_x, double offset_y);
     void on_drawingarea_drag_selection_end(double offset_x, double offset_y);
@@ -45,29 +44,25 @@ public:
     } SelectionHotHandle;
     SelectionHotHandle selection_hot_handle;
     SelectionHotHandle proximity_hot_handle;
-
     SelectionHotHandle closest_hot_handle(double x);
-
     long hot_handle_initial_position;
+
+    Glib::RefPtr<Gtk::GestureDrag> m_Drag_translation;
+    void on_drawingarea_drag_translation_begin(double start_x, double start_y);
+    void on_drawingarea_drag_translation_update(double offset_x, double offset_y);
+    void on_drawingarea_drag_translation_end(double offset_x, double offset_y);
+    long translation_initial_visible_start;
+    long translation_initial_visible_end;
+
+
+
     // bool has_selection;
     long selection_start;
     long selection_end;
     void set_selection_bounds(int _selection_start, int _selection_end);
     long get_frame_number_at(double offset_x);
     double get_pixel_at(long frame);
-    // Glib::RefPtr<Gtk::GestureZoom> m_GestureZoom;
-    //
-    // Glib::RefPtr<Gtk::GestureDrag> m_Drag_zoom;
-    // void on_drawingarea_drag_zoom_begin(double start_x, double start_y);
-    // void on_drawingarea_drag_zoom_update(double offset_x, double offset_y);
-    // void on_drawingarea_drag_zoom_end(double offset_x, double offset_y);
-    //
-    // int zoom_center_x;
-    // int zoom_center_y;
-    //
-    // void set_zoom_center(int x, int y);
-    // float zoom;
-    // float zoom_at_start;
+
 
     Glib::RefPtr<Gtk::EventControllerKey> m_Keypressed;
     bool on_key_pressed(const unsigned int a, const unsigned int b, const Gdk::ModifierType c);
