@@ -18,17 +18,15 @@ void Sound::load(std::string ppath)
   else
   {
     printf("file opened ok %s : %d\n", path.c_str(), sndfile);
-    printf("SF_INFO :\n-samplerate %d\n-channels %d\n-format %b\n-sections %d\n-seekable %d\n",
-           sfinfo.samplerate, sfinfo.channels, sfinfo.format, sfinfo.sections, sfinfo.seekable);
+    printf("SF_INFO :\n-frames: %d\n-samplerate %d\n-channels %d\n-format %b\n-sections %d\n-seekable %d\n",
+           sfinfo.frames,sfinfo.samplerate, sfinfo.channels, sfinfo.format, sfinfo.sections, sfinfo.seekable);
 
-    // TODO remove file size limit (10 minutes);
-    int samples = sfinfo.samplerate * sfinfo.channels * 10 * 60;
+    int samples = sfinfo.frames * sfinfo.channels;
     ptr = (float *)malloc(samples * sizeof(float));
 
     read_count = sf_read_float(sndfile, ptr, samples);
-    printf("sndfile asked for %d samples, read %d\n ", samples, read_count);
+    printf("asked sndfile for %d samples, read %d\n ", samples, read_count);
 
-    // player.play_some(ptr, read_count * sizeof(float));
     sf_close(sndfile);
   }
 };
