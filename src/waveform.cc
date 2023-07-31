@@ -19,25 +19,36 @@ std::string Waveform::ScaleUnit::duration_display_string(double seconds) const
     seconds -= (double)d_seconds;
     int d_milliseconds = std::floor(1000 * seconds);
 
+    bool showing_round_minutes = (m_period_s >= 60.0);
+    bool showing_round_seconds = (m_period_s >= 1.0);
+
     std::string s = "";
     if (d_hours > 0)
     {
-        s += std::to_string(d_hours) + "h";
+        s += std::to_string(d_hours) + ":";
     }
     if (d_minutes > 0)
     {
-        s += std::to_string(d_minutes) + "m";
+        std::string unpadded = std::to_string(d_minutes);
+        s += std::string(2 - unpadded.length(), '0') + unpadded + ((showing_round_minutes) ? "m" : ":");
     }
-    if (d_seconds > 0)
+    if (!showing_round_minutes)
     {
-        s += std::to_string(d_seconds) + "s";
+        // if (d_seconds > 0)
+        {
+            std::string unpadded = std::to_string(d_seconds);
+            s += std::string(2 - unpadded.length(), '0') + unpadded +
+                 ((showing_round_seconds || (d_milliseconds == 0)) ? "" : ".");
+        }
+        if (!showing_round_seconds)
+        {
+            // if (d_milliseconds > 0)
+            {
+                std::string unpadded = std::to_string(d_milliseconds);
+                s += std::string(4 - unpadded.length(), '0') + unpadded;
+            }
+        }
     }
-    if (d_milliseconds > 0)
-    {
-        std::string s_ms = std::to_string(d_milliseconds);
-        s += std::string(4 - s_ms.length(), '0') + s_ms + "ms";
-    }
-
     return s;
 
     //
@@ -68,12 +79,18 @@ Waveform::Waveform()
     hack_sound_end = NULL;
 
     // m_scale_units.push_back(Waveform::ScaleUnit(10, 10, 40.0));
-    m_scale_units.push_back(Waveform::ScaleUnit(60.0, 10, 60.0, "s", 1.0));
-    m_scale_units.push_back(Waveform::ScaleUnit(30.0, 10, 50.0, "s", 1.0));
-    m_scale_units.push_back(Waveform::ScaleUnit(10.0, 10, 40.0, "s", 1.0));
-    m_scale_units.push_back(Waveform::ScaleUnit(1.0, 10, 30.0, "s", 1.0));
-    m_scale_units.push_back(Waveform::ScaleUnit(0.1, 10, 20.0, "ms", 0.001));
-    m_scale_units.push_back(Waveform::ScaleUnit(0.01, 10, 10.0, "ms", 0.001));
+    m_scale_units.push_back(Waveform::ScaleUnit(600.0, 10, 21.0, "s", 1.0));
+    m_scale_units.push_back(Waveform::ScaleUnit(300.0, 10, 20.0, "s", 1.0));
+    m_scale_units.push_back(Waveform::ScaleUnit(60.0, 10, 19.0, "s", 1.0));
+    m_scale_units.push_back(Waveform::ScaleUnit(30.0, 10, 17.0, "s", 1.0));
+    m_scale_units.push_back(Waveform::ScaleUnit(10.0, 10, 16.0, "s", 1.0));
+    m_scale_units.push_back(Waveform::ScaleUnit(5.0, 10, 15.0, "s", 1.0));
+    m_scale_units.push_back(Waveform::ScaleUnit(1.0, 10, 14.0, "s", 1.0));
+    m_scale_units.push_back(Waveform::ScaleUnit(0.5, 10, 12.0, "ms", 0.001));
+    m_scale_units.push_back(Waveform::ScaleUnit(0.1, 10, 11.0, "ms", 0.001));
+    m_scale_units.push_back(Waveform::ScaleUnit(0.05, 10, 9.0, "ms", 0.001));
+    m_scale_units.push_back(Waveform::ScaleUnit(0.01, 10, 8.0, "ms", 0.001));
+    m_scale_units.push_back(Waveform::ScaleUnit(0.005, 10, 6.0, "ms", 0.001));
     m_scale_units.push_back(Waveform::ScaleUnit(0.001, 10, 5.0, "ms", 0.001));
 
     signal_resize().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_resize));
@@ -264,13 +281,15 @@ void Waveform::draw_scale()
 
     printf("---\n");
     bool first_labelled = false;
-    int previous_level_label_count = 0;
+    int previous_caption_shown_count = 0;
+    const Waveform::ScaleUnit *caption_scale_unit = NULL;
+    double unit_label_font_size = 12.0;
+
     for (auto const &scale_unit : m_scale_units)
     {
 
         double unit_length_s = scale_unit.m_period_s;                   // 0.1;
         double unit_display_height_px = scale_unit.m_display_height_px; // scale_unit.m_period_s 20;
-        double unit_label_font_size = 12.0;
         std::string unit_name = scale_unit.m_name;
 
         double pixel_per_second = vw / visible_length_s;
@@ -279,50 +298,56 @@ void Waveform::draw_scale()
         printf("p/s: %f ; unit : %f p/u : %f \n", pixel_per_second, unit_length_s, pixel_per_unit);
 
         double show_unit_low_bound_px = 20.0;
-        if (pixel_per_unit > show_unit_low_bound_px)
+        int caption_shown_count = 0;
+        if (pixel_per_unit <= show_unit_low_bound_px)
+            continue;
+
+        double left_s = std::floor(visible_start_s / unit_length_s) * unit_length_s;
+        double right_s = std::ceil(visible_end_s / unit_length_s) * unit_length_s;
+        int label_count = 0;
+        for (double x_s = left_s; x_s <= right_s; x_s += unit_length_s)
         {
-            double left_s = std::floor(visible_start_s / unit_length_s) * unit_length_s;
-            double right_s = std::ceil(visible_end_s / unit_length_s) * unit_length_s;
-            int label_count = 0;
-            for (double x_s = left_s; x_s <= right_s; x_s += unit_length_s)
-            {
-                double x = get_pixel_at((long)(x_s * ((double)sound.sfinfo.samplerate)));
+            double x = get_pixel_at((long)(x_s * ((double)sound.sfinfo.samplerate)));
 
-                if (auto search = used_positions.find((int)x); search != used_positions.end())
-                    continue;
+            if (!((x_s >= visible_start_s) && (x_s < visible_end_s)))
+                continue;
 
-                used_positions.insert((int)x);
-                cr->rectangle(std::round(x), vh - unit_display_height_px, 1, vh);
-                cr->fill();
-                if (previous_level_label_count >= 2)
-                {
-                    printf("%f has previous %d\n", x_s, previous_level_label_count);
-                }
-                else
-                {
-                    if (true || !first_labelled)
-                    {
-                        // auto z = scale_unit.to_string();
-                        if ((x_s >= visible_start_s) && (x_s <= visible_end_s))
-                        {
-                            // printf("@%f, !firstlab %s\n", x, scale_unit.to_string().c_str());
-                            cr->set_font_size(unit_label_font_size);
-                            cr->set_source_rgb(1.0, 1.0, 1.0);
-                            cr->move_to(std::round(x), vh - unit_display_height_px - unit_label_font_size);
+            if (auto search = used_positions.find((int)x); search != used_positions.end())
+                continue;
 
-                            // int quantity = x_s / scale_unit.m_name_period_s;
+            used_positions.insert((int)x);
+            cr->set_source_rgba(0.5, 1.0, 0.5, 0.5);
 
-                            // cr->show_text(std::to_string(quantity) + unit_name);
+            cr->rectangle(std::round(x), vh - unit_display_height_px, 1, vh);
+            cr->fill();
 
-                            cr->show_text(scale_unit.duration_display_string(x_s));
-                            first_labelled = true;
-                            label_count++;
-                        }
-                    }
-                }
-            }
-            printf("%s ; LABELS %d\n", scale_unit.to_string().c_str(), label_count);
-            previous_level_label_count = std::max(label_count, previous_level_label_count);
+            caption_shown_count++;
+        }
+
+        if ((caption_shown_count >= 2) && (previous_caption_shown_count == 0))
+        {
+            previous_caption_shown_count = caption_shown_count;
+            caption_scale_unit = &scale_unit;
+        }
+    }
+    if (caption_scale_unit != NULL)
+    {
+        printf("caption_scale_unit::::: %s\n", caption_scale_unit->to_string().c_str());
+        double unit_length_s = caption_scale_unit->m_period_s;                   // 0.1;
+        double unit_display_height_px = caption_scale_unit->m_display_height_px; // scale_unit.m_period_s 20;
+
+        double left_s = std::floor(visible_start_s / unit_length_s) * unit_length_s;
+        double right_s = std::ceil(visible_end_s / unit_length_s) * unit_length_s;
+        for (double x_s = left_s; x_s <= right_s; x_s += unit_length_s)
+        {
+            double x = get_pixel_at((long)(x_s * ((double)sound.sfinfo.samplerate)));
+            if (!((x_s >= visible_start_s) && (x_s < visible_end_s)))
+                continue;
+
+            cr->set_font_size(unit_label_font_size);
+            cr->set_source_rgb(1.0, 1.0, 1.0);
+            cr->move_to(x + 3, vh - 3);
+            cr->show_text(caption_scale_unit->duration_display_string(x_s));
         }
     }
 }
