@@ -21,7 +21,6 @@ Player::Player()
     set_sound_end(0);
     m_play_started.store(false);
     m_terminate_the_play_thread.store(false);
-    //  RubberBand::RubberBandStretcher::Options rubberband_options = RubberBand::RubberBandStretcher::DefaultOptions | RubberBand::RubberBandStretcher::OptionProcessOffline;
     RubberBand::RubberBandStretcher::Options rubberband_options = RubberBand::RubberBandStretcher::DefaultOptions | RubberBand::RubberBandStretcher::OptionProcessRealTime;
     rubberBandStretcher = new RubberBand::RubberBandStretcher(48000, 1, rubberband_options);
 
@@ -52,24 +51,6 @@ void Player::connect_to_pulseaudio()
                             NULL     // Ignore error code.
     );
     printf("is pa object null ? %d \n", this->s);
-};
-
-void Player::play_some()
-{
-    printf("Player::play_some()\n");
-    printf("is pa object null ? %d \n", this->s);
-    if (this->s != NULL)
-    {
-        int nbytes = 48000;
-        uint8_t *data = (uint8_t *)malloc(sizeof(int16_t) * nbytes);
-        for (int i = 0; i < nbytes; i++)
-        {
-            data[i] = (i / 2) % 256;
-        }
-        int error;
-        pa_simple_write(this->s, (void *)data, (size_t)nbytes, &error);
-        printf("error while playing ? %d : %s\n", error, pa_strerror(error));
-    }
 };
 
 void Player::play_always()
@@ -124,6 +105,12 @@ void Player::play_always()
                 printf("[player] so %d ms of time are still played by sink\n", samples_remaining_ms);
                 samples_sent_to_sink = 0;
                 previous_play_state = l_play_started;
+                // i don't know why
+                int pa_drain_error;
+                if (pa_simple_drain(s, &pa_drain_error) < 0)
+                {
+                    fprintf(stderr, __FILE__ ": pa_simple_drain() failed: %s\n", pa_strerror(pa_drain_error));
+                }
                 // so sleep before doing anything;
                 std::this_thread::sleep_for(std::chrono::milliseconds(samples_remaining_ms));
             }
@@ -219,19 +206,6 @@ void Player::play_always()
         }
     }
 }
-
-/*
-
-
-    if (pa_simple_drain(s, &error) < 0) {
-        fprintf(stderr, __FILE__": pa_simple_drain() failed: %s\n", pa_strerror(error));
-        goto finish;
-    }
-
-
-    if (s)
-
-*/
 
 void Player::start_playing()
 {
