@@ -26,7 +26,6 @@ Player::~Player()
 
 Player::Player()
 {
-    printf("Player::Player()\n");
     set_pitch_scale(1);
     set_time_ratio(1);
     set_sound_start(0);
