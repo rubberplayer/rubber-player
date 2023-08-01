@@ -127,7 +127,7 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
   //  hack
 
   sound.load("/home/vivien/Bureau/redhouse-clip-mono.flac");
-  m_Waveform.set_sound(sound);
+  m_Waveform.set_sound(&sound);
   player.set_sound(&sound);
 
   m_Waveform.set_hack_sound_start_sound_end_sound_position(&player.m_sound_start, &player.m_sound_end, &player.m_sound_position);

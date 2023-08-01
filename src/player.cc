@@ -12,16 +12,16 @@ Player::~Player()
     {
         m_the_play_thread.join();
     }
-    if (m_pa_simple != NULL)
-    {
-        pa_simple_free(m_pa_simple);
-        m_pa_simple = NULL;
-    }
-    if (rubberBandStretcher != NULL)
-    {
-        delete rubberBandStretcher;
-        rubberBandStretcher = NULL;
-    }
+  //  if (m_pa_simple != NULL)
+  //  {
+  //      pa_simple_free(m_pa_simple);
+  //      m_pa_simple = NULL;
+  //  }
+  //  if (rubberBandStretcher != NULL)
+  //  {
+  //      delete rubberBandStretcher;
+  //      rubberBandStretcher = NULL;
+  //  }
 }
 
 Player::Player()
@@ -141,8 +141,8 @@ void Player::play_always()
         rubberBandStretcher->setTimeRatio(time_ratio);
         rubberBandStretcher->setPitchScale(pitch_scale);
 
-        printf("sound samplerate : %d ; channels : %d, selection [%d,%d] ; pitch scale : %f ; time_ratio : %f, position : %d, time position : %f\n",
-               m_sound->sfinfo.samplerate, m_sound->sfinfo.channels, selection_left, selection_right, pitch_scale, time_ratio, position, time_position);
+    //    printf("sound samplerate : %d ; channels : %d, selection [%d,%d] ; pitch scale : %f ; time_ratio : %f, position : %d, time position : %f\n",
+    //           m_sound->sfinfo.samplerate, m_sound->sfinfo.channels, selection_left, selection_right, pitch_scale, time_ratio, position, time_position);
 
         if (position < selection_left)
             position = selection_left;
@@ -191,14 +191,24 @@ void Player::play_always()
 
         m_sound_position.store(position);
 
-        // float block_duration_ms = 1000.0 * ((float)block_size) / ((float)(m_sound->sfinfo.samplerate));
-        // printf("block duration %f ms\n", block_duration_ms);
-        // long bloc_duration_ms_long = (long)std::floor(block_duration_ms);
         if (block_size == 0)
         {
             printf("ooooooooooooooooooodddddddddddddddddddiity\n");
             std::this_thread::sleep_for(std::chrono::milliseconds(16));
         }
+    }
+    printf("end of thread\n");
+    
+    free(rubberband_output);
+    if (m_pa_simple != NULL)
+    {
+        pa_simple_free(m_pa_simple);
+        m_pa_simple = NULL;
+    }
+    if (rubberBandStretcher != NULL)
+    {
+        delete rubberBandStretcher;
+        rubberBandStretcher = NULL;
     }
 }
 

@@ -25,8 +25,8 @@ public:
     long visible_start;
     long visible_end;
 
-    Sound sound;
-    void set_sound(Sound sound);
+    Sound *m_sound;
+    void set_sound(Sound * sound);
 
     void draw_sound();
     void draw_scale();

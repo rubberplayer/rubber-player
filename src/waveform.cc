@@ -215,12 +215,12 @@ void Waveform::on_mouse_motion(double x, double y)
 // {
 //     return true;
 // }
-void Waveform::set_sound(Sound _sound)
+void Waveform::set_sound(Sound *sound)
 {
-    sound = _sound;
+    m_sound = sound;
 
     visible_start = 0;
-    visible_end = sound.get_frame_count();
+    visible_end = m_sound->get_frame_count();
     selection_start = 0;
     selection_end = 0;
     selection_hot_handle = SelectionHotHandle::NONE;
@@ -308,8 +308,9 @@ void Waveform::draw_scale()
     double vw = (double)get_width();
     double vh = (double)get_height();
 
-    double visible_start_s = ((double)visible_start) / ((double)sound.get_samplerate());
-    double visible_end_s = ((double)visible_end) / ((double)sound.get_samplerate());
+    double samplerate_d = (double)(m_sound->get_samplerate());
+    double visible_start_s = ((double)visible_start) / samplerate_d;
+    double visible_end_s = ((double)visible_end) / samplerate_d;
     double visible_length_s = visible_end_s - visible_start_s;
 
     std::set<int> used_positions;
@@ -341,7 +342,7 @@ void Waveform::draw_scale()
         int label_count = 0;
         for (double x_s = left_s; x_s <= right_s; x_s += unit_length_s)
         {
-            double x = get_pixel_at((long)(x_s * ((double)sound.get_samplerate())));
+            double x = get_pixel_at((long)(x_s * ((double)(m_sound->get_samplerate()))));
 
             if (!((x_s >= visible_start_s) && (x_s < visible_end_s)))
                 continue;
@@ -375,7 +376,7 @@ void Waveform::draw_scale()
         double right_s = std::ceil(visible_end_s / unit_length_s) * unit_length_s;
         for (double x_s = left_s; x_s <= right_s; x_s += unit_length_s)
         {
-            double x = get_pixel_at((long)(x_s * ((double)sound.get_samplerate())));
+            double x = get_pixel_at((long)(x_s * ((double)(m_sound->get_samplerate()))));
             if (!((x_s >= visible_start_s) && (x_s < visible_end_s)))
                 continue;
 
@@ -402,11 +403,12 @@ void Waveform::draw_text()
     /*auto sw = m_waveform_surface->get_width();
     auto sh = m_waveform_surface->get_height();
     */
-    /*    float left =  ((float)selection_start) / ((float)sound.get_frame_count()); //* (float)sw;
-        float right = ((float)selection_end) / ((float)sound.get_frame_count());// * (float)sw;
+    /*    float left =  ((float)selection_start) / ((float)m_sound.get_frame_count()); //* (float)sw;
+        float right = ((float)selection_end) / ((float)m_sound.get_frame_count());// * (float)sw;
       */
-    float left_s = ((float)selection_start) / (float)sound.get_samplerate();
-    float right_s = ((float)selection_end) / (float)sound.get_samplerate();
+    float samplerate_f = (float) (m_sound->get_samplerate());
+    float left_s = ((float)selection_start) / samplerate_f;
+    float right_s = ((float)selection_end) / samplerate_f;
     float margin_top = font_size * 1.1;
     float line_height = font_size;
     float margin_left = 5;
@@ -417,7 +419,7 @@ void Waveform::draw_text()
     cr->set_source_rgb(1.0, 1.0, 1.0);
     if (m_mouse_hover)
     {
-        float mouse_s = (float)get_frame_number_at(mouse_x) / (float)sound.get_samplerate();
+        float mouse_s = (float)get_frame_number_at(mouse_x) / ((float)(m_sound->get_samplerate()));
         cr->move_to(margin_left, pos_y);
         cr->show_text(regular_timecode_display(mouse_s));
         pos_y += line_height;
@@ -498,7 +500,7 @@ void Waveform::draw_sound()
 
     cr->set_source_rgb(1.0, 0.5, 0.25);
     double visible_frames = (double)(visible_end - visible_start);
-    float *sound_data = sound.get_sound_data();
+    float *sound_data = m_sound->get_sound_data();
     for (int i = 0; i < sw; i++)
     {
         long p0 = visible_start + (long)(((double)i / (double)sw) * visible_frames);
@@ -611,9 +613,9 @@ void Waveform::on_drawingarea_drag_translation_update(double offset_x, double of
         d_translation = translation_initial_visible_start;
     }
 
-    if ((translation_initial_visible_end - d_translation) >= sound.get_frame_count())
+    if ((translation_initial_visible_end - d_translation) >= (m_sound->get_frame_count()))
     {
-        d_translation = translation_initial_visible_end - sound.get_frame_count();
+        d_translation = translation_initial_visible_end - (m_sound->get_frame_count());
     }
 
     visible_start = translation_initial_visible_start - d_translation;
@@ -632,8 +634,8 @@ void Waveform::on_drawingarea_drag_translation_end(double offset_x, double offse
 void Waveform::set_selection_bounds(int _selection_start, int _selection_end)
 {
 
-    selection_start = std::clamp(_selection_start, 0, (int)sound.get_frame_count() - 1);
-    selection_end = std::clamp(_selection_end, 0, (int)sound.get_frame_count() - 1);
+    selection_start = std::clamp(_selection_start, 0, (int)(m_sound->get_frame_count()) - 1);
+    selection_end = std::clamp(_selection_end, 0, (int)(m_sound->get_frame_count()) - 1);
 
     m_selection_surface_dirty = true;
 
@@ -690,7 +692,7 @@ void Waveform::zoom_around(long frame, bool zoom_out)
     long new_right = frame + (long)new_frames_at_right;
 
     visible_start = std::max((long)0, new_left);
-    visible_end = std::min(new_right, (long)sound.get_frame_count());
+    visible_end = std::min(new_right, (long)(m_sound->get_frame_count()));
 
     m_waveform_surface_dirty = true;
     m_scale_surface_dirty = true;
