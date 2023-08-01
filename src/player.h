@@ -13,6 +13,7 @@ public:
   void play_always();
   std::thread m_the_play_thread;
   std::atomic<bool> m_terminate_the_play_thread;
+  void stop_playing_thread();
 
   std::atomic<bool> m_play_started;
   void start_playing();

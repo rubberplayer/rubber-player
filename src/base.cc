@@ -222,8 +222,12 @@ void MainWindow::on_button_open_clicked()
 
 void MainWindow::load_sound(std::string path)
 {
+  m_Button_play.set_active(false);
+  m_Waveform.set_sound(NULL);
+  player.stop_playing_thread();
   printf("load sound a filename path %s\n", path.c_str());
-  sound.load("/home/vivien/Bureau/redhouse-clip-mono.flac");
+  //sound.load("/home/vivien/Bureau/redhouse-clip-mono.flac");
+  sound.load(path);
   m_Waveform.set_sound(&sound);
   player.set_sound(&sound);
 }

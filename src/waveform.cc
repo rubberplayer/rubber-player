@@ -220,18 +220,20 @@ void Waveform::on_mouse_motion(double x, double y)
 void Waveform::set_sound(Sound *sound)
 {
     m_sound = sound;
+    if (sound != NULL)
+    {
+        visible_start = 0;
+        visible_end = m_sound->get_frame_count();
+        selection_start = 0;
+        selection_end = 0;
+        selection_hot_handle = SelectionHotHandle::NONE;
+        proximity_hot_handle = SelectionHotHandle::NONE;
 
-    visible_start = 0;
-    visible_end = m_sound->get_frame_count();
-    selection_start = 0;
-    selection_end = 0;
-    selection_hot_handle = SelectionHotHandle::NONE;
-    proximity_hot_handle = SelectionHotHandle::NONE;
-
-    m_waveform_surface_dirty = true;
-    m_selection_surface_dirty = true;
-    m_text_surface_dirty = true;
-    m_scale_surface_dirty = true;
+        m_waveform_surface_dirty = true;
+        m_selection_surface_dirty = true;
+        m_text_surface_dirty = true;
+        m_scale_surface_dirty = true;
+    }
     queue_draw();
 }
 void Waveform::on_drawingarea_resize(int width, int height)

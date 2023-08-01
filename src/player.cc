@@ -230,24 +230,26 @@ void Player::stop_playing()
     printf("Player::stop_playing\n");
     m_play_started.store(false);
 }
-
-void Player::set_sound(Sound *sound)
-{
+void Player::stop_playing_thread(){
     // terminate potential previous thread
     m_terminate_the_play_thread.store(true);
     if (m_the_play_thread.joinable())
     {
         m_the_play_thread.join();
     }
+    m_terminate_the_play_thread.store(false);
+    m_play_started.store(false);
+}
+void Player::set_sound(Sound *sound)
+{
+    stop_playing_thread();
 
     // set new sound
     m_sound = sound;
     set_sound_start(0);
     set_sound_end(m_sound->get_frame_count());
     m_sound_position.store(0);
-    m_terminate_the_play_thread.store(false);
-    m_play_started.store(false);
-
+    
     // start the thread
     m_the_play_thread = std::thread([this]
                                     { play_always(); });
