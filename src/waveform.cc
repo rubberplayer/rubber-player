@@ -215,7 +215,7 @@ void Waveform::on_mouse_motion(double x, double y)
 // {
 //     return true;
 // }
-void Waveform::set_sound(Sound *sound)
+void Waveform::set_sound(Sound * sound)
 {
     m_sound = sound;
 
@@ -403,8 +403,8 @@ void Waveform::draw_text()
     /*auto sw = m_waveform_surface->get_width();
     auto sh = m_waveform_surface->get_height();
     */
-    /*    float left =  ((float)selection_start) / ((float)m_sound.get_frame_count()); //* (float)sw;
-        float right = ((float)selection_end) / ((float)m_sound.get_frame_count());// * (float)sw;
+    /*    float left =  ((float)selection_start) / ((float)m_sound->get_frame_count()); //* (float)sw;
+        float right = ((float)selection_end) / ((float)m_sound->get_frame_count());// * (float)sw;
       */
     float samplerate_f = (float) (m_sound->get_samplerate());
     float left_s = ((float)selection_start) / samplerate_f;
