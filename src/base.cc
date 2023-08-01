@@ -78,8 +78,9 @@ public:
   TimeRatioRange m_time_ratio_range;
   Gtk::Label m_Label_time_ratio;
   Gtk::Scale m_Scale_time_ratio;
-  void on_time_ratio_value_changed();
+  Gtk::Label m_Label_time_ratio_img;
   Gtk::Entry m_Entry_time_ratio;
+  void on_time_ratio_value_changed();
 
   // Gtk::Scale::SlotFormatValue m_Scale_time_ratio_format_value;
   // char* m_Scale_time_ratio_format_value(double value);
@@ -157,7 +158,7 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
   //  sound.load("/home/vivien/Bureau/redhouse-mono.wav");
   //  hack
 
-  sound.load("/home/vivien/Bureau/redhouse-clip-mono.flac");
+  //sound.load("/home/vivien/Bureau/redhouse-clip-mono.flac");
   //  m_Waveform.set_sound(&sound);
   // player.set_sound(&sound);
 
@@ -175,7 +176,7 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
   m_Frame_Waveform.set_child(m_Waveform);
 
   // time ratio label
-  m_Label_time_ratio.set_text("Time Ratio 🐢");
+  m_Label_time_ratio.set_text("Time Ratio");
   m_Label_time_ratio.set_valign(Gtk::Align::END);
   m_Label_time_ratio.set_margin_bottom(8);
   m_Label_time_ratio.set_margin_start(4);
@@ -198,6 +199,13 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
     i_mark++;
   }
   m_HBox_time_ratio.append(m_Scale_time_ratio);
+
+  // time ratio image
+  m_Label_time_ratio_img.set_text("🐢");
+  m_Label_time_ratio_img.set_valign(Gtk::Align::END);
+  m_Label_time_ratio_img.set_margin_bottom(8);
+  m_Label_time_ratio_img.set_margin_start(4);
+  m_HBox_time_ratio.append(m_Label_time_ratio_img);
 
   // time ratio entry
   m_Entry_time_ratio.set_valign(Gtk::Align::END);
