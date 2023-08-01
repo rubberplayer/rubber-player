@@ -73,18 +73,6 @@ void Player::play_always()
     long position = 0;
 
     long max_block_size = 256 * 4; // max block size to be fed to rubberband
-    // float * rubberband_desinterleaved_input[m_sound->get_channels()] = malloc( max_block_size * sizeof(float) * m_sound->get_channels() );
-    //    float **rubberband_desinterleaved_input = new float *[m_sound->get_channels()];
-    //    for (long c = 0; c < m_sound->get_channels(); c++)
-    //    {
-    //        rubberband_desinterleaved_input[c] = new float[max_block_size];
-    //        /* for (long p = 0; p < max_block_size; p++){
-    //             printf("%d %f\n",p,rubberband_desinterleaved_input[c][p]);
-    //         }
-    //         */
-    //    }
-    // float *rubberband_desinterleaved_input = (float *)malloc(max_block_size * sizeof(float) * m_sound->get_channels());
-
     float **rubberband_desinterleaved_input = new float *[m_sound->get_channels()];
     for (int i = 0; i < m_sound->get_channels(); ++i)
     {
@@ -92,7 +80,14 @@ void Player::play_always()
     }
 
     size_t rubberband_output_block_size = 2 * 3 * 4 * 5 * 6 * 7 * 256;
-    float *rubberband_output = (float *)malloc(rubberband_output_block_size * sizeof(float));
+    // float *rubberband_output = (float *)malloc(rubberband_output_block_size * sizeof(float));
+    float **rubberband_output = new float *[m_sound->get_channels()];
+    for (int i = 0; i < m_sound->get_channels(); ++i)
+    {
+        rubberband_output[i] = new float[rubberband_output_block_size];
+    }
+
+    float *pulseaudio_interleaved_input = new float[rubberband_output_block_size * m_sound->get_channels()];
 
     long samples_sent_to_sink = 0;
     auto date_of_first_sample_sent_to_sink = std::chrono::high_resolution_clock::now();
@@ -193,18 +188,27 @@ void Player::play_always()
         }
 
         bool last_process = false;
-        //rubberBandStretcher->process(&ppp, block_size, last_process);
-         rubberBandStretcher->process(rubberband_desinterleaved_input, block_size, last_process);
+        // rubberBandStretcher->process(&ppp, block_size, last_process);
+        rubberBandStretcher->process(rubberband_desinterleaved_input, block_size, last_process);
 
         int available = rubberBandStretcher->available();
         int retrieve_from_rubberband_size = std::min((int)rubberband_output_block_size, available);
         if (retrieve_from_rubberband_size > 0)
         {
             // printf("retrieve %d\n",retrieve_from_rubberband_size);
-            rubberBandStretcher->retrieve(&rubberband_output, retrieve_from_rubberband_size);
-
+            rubberBandStretcher->retrieve(rubberband_output, retrieve_from_rubberband_size);
+            {
+                // copy to pulseaudio interleaved input
+                for (long c = 0; c < m_sound->get_channels(); c++)
+                {
+                    for (long i = 0; i < retrieve_from_rubberband_size; i++)
+                    {
+                        pulseaudio_interleaved_input[ i * m_sound->get_channels() + c ] = rubberband_output[c][i];
+                    }
+                }
+            }
             int pa_write_error;
-            pa_simple_write(m_pa_simple, (void *)rubberband_output, retrieve_from_rubberband_size * sizeof(float), &pa_write_error);
+            pa_simple_write(m_pa_simple, (void *)pulseaudio_interleaved_input, retrieve_from_rubberband_size * sizeof(float) * m_sound->get_channels(), &pa_write_error);
 
             if (samples_sent_to_sink == 0)
             {
@@ -244,7 +248,10 @@ void Player::play_always()
     }
     delete[] rubberband_desinterleaved_input;
 
-    free(rubberband_output);
+    // free(rubberband_output);
+    delete[] rubberband_output;
+
+    delete[] pulseaudio_interleaved_input;
 
     if (m_pa_simple != NULL)
     {
