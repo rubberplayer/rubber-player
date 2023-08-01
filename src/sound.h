@@ -15,9 +15,11 @@ public:
   float *ptr;
   void load(std::string path);
   bool is_loaded();
+  std::string get_error_string();
   sf_count_t get_frame_count();
   int get_samplerate();
   int get_channels();
   float *get_sound_data();  
+
 };
 #endif

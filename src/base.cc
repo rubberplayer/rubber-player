@@ -103,21 +103,45 @@ public:
   // void on_key_pressed(guint keyval, int keycode, Gdk::ModifierType state);
   // bool on_key_pressed(const Gdk::Event* event);
   bool on_key_pressed(const unsigned int a, const unsigned int b, const Gdk::ModifierType c);
-
-  long m_selection_start;
-  long m_selection_end;
-  void set_selection_bounds(long selection_start, long selection_end);
-
+  /*
+    long m_selection_start;
+    long m_selection_end;
+    void set_selection_bounds(long selection_start, long selection_end);
+  */
   void load_sound(std::string path);
 
   bool on_button_drop_drop_data(const Glib::ValueBase &value, double, double);
-};
 
+  // message dialog;
+  /*
+   explicit MessageDialog(const Glib::ustring& message,
+   bool use_markup = false,
+   MessageType type = MessageType::INFO,
+   ButtonsType buttons = ButtonsType::OK,
+    bool modal = false);
+   */
+  //Glib::ustring message = "error";
+  Gtk::MessageDialog *m_pMessageDialog ;
+
+  void show_message_dialog(std::string m1,std::string m2);
+};
+/*
 void MainWindow::set_selection_bounds(long selection_start, long selection_end)
 {
   m_selection_start = selection_start;
   m_selection_end = selection_end;
 }
+*/
+
+void MainWindow::show_message_dialog(std::string m1,std::string m2)
+{
+  Gtk::Window *parent = dynamic_cast<Gtk::Window *>(this);
+  m_pMessageDialog = new Gtk::MessageDialog( *parent,std::string("a"), true, Gtk::MessageType::ERROR, Gtk::ButtonsType::NONE, true);
+  m_pMessageDialog->set_message(std::string("<b>") + m1 + "</b>", true); // "⚠"
+  m_pMessageDialog->set_secondary_text(m2, true);
+  m_pMessageDialog->set_title("Problem !");
+  m_pMessageDialog->show();
+ }
 
 MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
                            m_HBox_time_ratio(Gtk::Orientation::HORIZONTAL, 8),
@@ -127,6 +151,8 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
 {
   set_title(APPLICATION_NAME);
   set_default_size(600, 250);
+
+  
   // sound.load("/home/vivien/Bureau/redhouse-clip-mono-short.flac");
   //  sound.load("/home/vivien/Bureau/redhouse-mono.wav");
   //  hack
@@ -237,8 +263,15 @@ void MainWindow::load_sound(std::string path)
   printf("load sound a filename path %s\n", path.c_str());
   // sound.load("/home/vivien/Bureau/redhouse-clip-mono.flac");
   sound.load(path);
-  m_Waveform.set_sound(&sound);
-  player.set_sound(&sound);
+  if (sound.is_loaded())
+  {
+    m_Waveform.set_sound(&sound);
+    player.set_sound(&sound);
+  }
+  else
+  {
+    show_message_dialog("Error while loading",sound.get_error_string());
+  }
 }
 std::vector<std::string> text_fileurls_list_to_path_list(std::string maybe_file_lines_list)
 {

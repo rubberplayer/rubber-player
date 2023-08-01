@@ -7,7 +7,8 @@ Sound::Sound()
 Sound::~Sound()
 {
   printf("** destroys a sound\n");
-  if (ptr != NULL) free(ptr);
+  if (ptr != NULL)
+    free(ptr);
 }
 void Sound::load(std::string ppath)
 {
@@ -16,13 +17,13 @@ void Sound::load(std::string ppath)
   sndfile = sf_open(path.c_str(), SFM_READ, &sfinfo);
   if (sndfile == NULL)
   {
-    printf("error reading file %s : %s\n", &path, sf_strerror(sndfile));
+    printf("error opening file %s : %s - %p\n", path.c_str(), sf_strerror(sndfile), sndfile);
   }
   else
   {
     printf("file opened ok %s : %d\n", path.c_str(), sndfile);
     printf("SF_INFO :\n-frames: %d\n-samplerate %d\n-channels %d\n-format %b\n-sections %d\n-seekable %d\n",
-           sfinfo.frames,sfinfo.samplerate, sfinfo.channels, sfinfo.format, sfinfo.sections, sfinfo.seekable);
+           sfinfo.frames, sfinfo.samplerate, sfinfo.channels, sfinfo.format, sfinfo.sections, sfinfo.seekable);
 
     int samples = sfinfo.frames * sfinfo.channels;
     ptr = (float *)malloc(samples * sizeof(float));
@@ -37,6 +38,14 @@ void Sound::load(std::string ppath)
 bool Sound::is_loaded()
 {
   return (sndfile != NULL) && (read_count > 0);
+}
+std::string Sound::get_error_string()
+{
+  if (sf_error(sndfile) != SF_ERR_NO_ERROR)
+  {
+    return std::string("Could not load file at ") + "\"" + path + "\"" + "... Libsndfile said : " + "<b>" + sf_strerror(sndfile) + "</b>";
+  }
+  return std::string(sf_strerror(sndfile));
 }
 sf_count_t Sound::get_frame_count()
 {
