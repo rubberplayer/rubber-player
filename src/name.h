@@ -1,1 +1,1 @@
-#define APPLICATION_NAME "Rubber player"
+#define APPLICATION_NAME "Rubber Player"

@@ -3,3 +3,5 @@
 - group all color choices
 - waveform channel different colors
 [x] handle bad soundfile / not a soundfile
+- config rubberband
+- fix noop  pa_write_error / error while writing to pa sink (260 samples) ? -487077284 : (null)

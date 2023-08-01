@@ -309,7 +309,8 @@ bool MainWindow::on_button_drop_drop_data(const Glib::ValueBase &value, double, 
     if (path_list.size() > 0)
     {
       auto first = path_list[0];
-      load_sound(first);
+      auto unescaped = Glib::uri_unescape_string(first);
+      load_sound(unescaped);
       return true;
     }
   }
