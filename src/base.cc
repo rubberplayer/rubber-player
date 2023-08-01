@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <ctime>
 #include <cstdlib>
+#include <regex>
 #include "./name.h"
 #include "./player.h"
 #include "./sound.h"
@@ -108,6 +109,8 @@ public:
   void set_selection_bounds(long selection_start, long selection_end);
 
   void load_sound(std::string path);
+
+  bool on_button_drop_drop_data(const Glib::ValueBase &value, double, double);
 };
 
 void MainWindow::set_selection_bounds(long selection_start, long selection_end)
@@ -193,6 +196,12 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
   m_Dialog_open_audio_file->set_transient_for(*this);
   m_Dialog_open_audio_file->set_modal(true);
   m_Dialog_open_audio_file->signal_response().connect(sigc::bind(sigc::mem_fun(*this, &MainWindow::on_open_audio_file_dialog_response), m_Dialog_open_audio_file));
+
+  const GType ustring_type = Glib::Value<Glib::ustring>::value_type();
+  auto target = Gtk::DropTarget::create(ustring_type, Gdk::DragAction::COPY);
+  target->signal_drop().connect(
+      sigc::mem_fun(*this, &MainWindow::on_button_drop_drop_data), false);
+  add_controller(target);
 }
 
 void MainWindow::on_time_ratio_value_changed()
@@ -226,12 +235,49 @@ void MainWindow::load_sound(std::string path)
   m_Waveform.set_sound(NULL);
   player.stop_playing_thread();
   printf("load sound a filename path %s\n", path.c_str());
-  //sound.load("/home/vivien/Bureau/redhouse-clip-mono.flac");
+  // sound.load("/home/vivien/Bureau/redhouse-clip-mono.flac");
   sound.load(path);
   m_Waveform.set_sound(&sound);
   player.set_sound(&sound);
 }
+std::vector<std::string> text_fileurls_list_to_path_list(std::string maybe_file_lines_list)
+{
+  using namespace std;
+  std::vector<std::string> path_list;
+  regex exp("file://(.+)[\\n\\r]*");
+  smatch res;
+  string str = maybe_file_lines_list;
 
+  while (regex_search(str, res, exp))
+  {
+    path_list.push_back(res[1]);
+    str = res.suffix();
+  }
+  return path_list;
+}
+bool MainWindow::on_button_drop_drop_data(const Glib::ValueBase &value, double, double)
+{
+  if (G_VALUE_HOLDS(value.gobj(), Glib::Value<Glib::ustring>::value_type()))
+  {
+    // We got the value type that we expected.
+    Glib::Value<Glib::ustring> ustring_value;
+    ustring_value.init(value.gobj());
+    const Glib::ustring dropped_string = ustring_value.get();
+    std::string maybe_file_lines_list(dropped_string);
+    auto path_list = text_fileurls_list_to_path_list(maybe_file_lines_list);
+    if (path_list.size() > 0)
+    {
+      auto first = path_list[0];
+      load_sound(first);
+      return true;
+    }
+  }
+  else
+  {
+    std::cout << "Received unexpected data type \"" << G_VALUE_TYPE_NAME(value.gobj()) << "\" in button " << std::endl;
+  }
+  return false;
+}
 void MainWindow::on_open_audio_file_dialog_response(int response_id, Glib::RefPtr<Gtk::FileChooserNative> &dialog)
 {
   Glib::RefPtr<Gio::File> filename = m_Dialog_open_audio_file->get_file();
