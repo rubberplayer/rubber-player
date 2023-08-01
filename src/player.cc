@@ -59,7 +59,11 @@ void Player::connect_to_pulseaudio(int channels, int framerate)
 };
 void Player::initialize_RubberBand(int channels, int samplerate)
 {
-    RubberBand::RubberBandStretcher::Options rubberband_options = RubberBand::RubberBandStretcher::DefaultOptions | RubberBand::RubberBandStretcher::OptionProcessRealTime;
+    RubberBand::RubberBandStretcher::Options rubberband_options =
+        RubberBand::RubberBandStretcher::DefaultOptions 
+        | RubberBand::RubberBandStretcher::OptionProcessRealTime
+        | RubberBand::RubberBandStretcher::OptionEngineFiner;
+
     rubberBandStretcher = new RubberBand::RubberBandStretcher(samplerate, channels, rubberband_options);
     printf("RubberBand engine version : %d\n", rubberBandStretcher->getEngineVersion());
     printf("RubberBand channel count : %d\n", rubberBandStretcher->getChannelCount());
@@ -204,7 +208,7 @@ void Player::play_always()
                 {
                     for (long i = 0; i < retrieve_from_rubberband_size; i++)
                     {
-                        pulseaudio_interleaved_input[ i * channels + c ] = rubberband_output[c][i];
+                        pulseaudio_interleaved_input[i * channels + c] = rubberband_output[c][i];
                     }
                 }
             }
@@ -248,11 +252,11 @@ void Player::play_always()
         delete[] rubberband_desinterleaved_input[i];
     }
     delete[] rubberband_desinterleaved_input;
-    
+
     for (int i = 0; i < channels; ++i)
     {
         delete[] rubberband_output[i];
-    }    
+    }
     delete[] rubberband_output;
 
     delete[] pulseaudio_interleaved_input;

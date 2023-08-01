@@ -121,10 +121,10 @@ public:
    ButtonsType buttons = ButtonsType::OK,
     bool modal = false);
    */
-  //Glib::ustring message = "error";
-  Gtk::MessageDialog *m_pMessageDialog ;
+  // Glib::ustring message = "error";
+  Gtk::MessageDialog *m_pMessageDialog;
 
-  void show_message_dialog(std::string m1,std::string m2);
+  void show_message_dialog(std::string m1, std::string m2);
 };
 /*
 void MainWindow::set_selection_bounds(long selection_start, long selection_end)
@@ -133,16 +133,6 @@ void MainWindow::set_selection_bounds(long selection_start, long selection_end)
   m_selection_end = selection_end;
 }
 */
-
-void MainWindow::show_message_dialog(std::string m1,std::string m2)
-{
-  Gtk::Window *parent = dynamic_cast<Gtk::Window *>(this);
-  m_pMessageDialog = new Gtk::MessageDialog( *parent,std::string("a"), true, Gtk::MessageType::ERROR, Gtk::ButtonsType::NONE, true);
-  m_pMessageDialog->set_message(std::string("<b>") + m1 + "</b>", true); // "⚠"
-  m_pMessageDialog->set_secondary_text(m2, true);
-  m_pMessageDialog->set_title("Problem !");
-  m_pMessageDialog->show();
- }
 
 MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
                            m_HBox_time_ratio(Gtk::Orientation::HORIZONTAL, 8),
@@ -153,14 +143,13 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
   set_title(APPLICATION_NAME);
   set_default_size(600, 250);
 
-  
   // sound.load("/home/vivien/Bureau/redhouse-clip-mono-short.flac");
   //  sound.load("/home/vivien/Bureau/redhouse-mono.wav");
   //  hack
 
-  //sound.load("/home/vivien/Bureau/redhouse-clip-mono.flac");
-  //  m_Waveform.set_sound(&sound);
-  // player.set_sound(&sound);
+  // sound.load("/home/vivien/Bureau/redhouse-clip-mono.flac");
+  //   m_Waveform.set_sound(&sound);
+  //  player.set_sound(&sound);
 
   m_Waveform.set_hack_sound_start_sound_end_sound_position(&player.m_sound_start, &player.m_sound_end, &player.m_sound_position);
 
@@ -258,11 +247,6 @@ void MainWindow::on_button_play_clicked()
   }
 }
 
-void MainWindow::on_button_open_clicked()
-{
-  m_Dialog_open_audio_file->show();
-}
-
 void MainWindow::load_sound(std::string path)
 {
   m_Button_play.set_active(false);
@@ -278,8 +262,23 @@ void MainWindow::load_sound(std::string path)
   }
   else
   {
-    show_message_dialog("Error while loading",sound.get_error_string());
+    show_message_dialog("Error while loading", sound.get_error_string());
   }
+}
+
+void MainWindow::show_message_dialog(std::string m1, std::string m2)
+{
+  Gtk::Window *parent = dynamic_cast<Gtk::Window *>(this);
+  m_pMessageDialog = new Gtk::MessageDialog(*parent, std::string("a"), true, Gtk::MessageType::ERROR, Gtk::ButtonsType::NONE, true);
+  m_pMessageDialog->set_message(std::string("<b>") + m1 + "</b>", true); // "⚠"
+  m_pMessageDialog->set_secondary_text(m2, true);
+  m_pMessageDialog->set_title("Problem !");
+  m_pMessageDialog->show();
+}
+
+void MainWindow::on_button_open_clicked()
+{
+  m_Dialog_open_audio_file->show();
 }
 std::vector<std::string> text_fileurls_list_to_path_list(std::string maybe_file_lines_list)
 {
