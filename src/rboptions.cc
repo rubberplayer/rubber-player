@@ -3,27 +3,28 @@
 // https://stackoverflow.com/questions/15441157/gtkmm-multiple-windows-popup-window
 // https://rafaelmardojai.pages.gitlab.gnome.org/pygobject-guide/gtk4/controls/dropdown.html
 
-RubberBandOptionsWindow::RubberBandOption::RubberBandOption(std::string name, std::vector<std::string> values, std::vector<std::string> engines)
+RubberBandOptionsWindow::RubberBandOption::RubberBandOption(std::string name, std::vector<std::string> values, std::vector<std::string> engines,std::vector<std::string> needs_restart)
 {
     m_name = name;
     m_values = values;
     m_engines = engines;
+    m_needs_restart = needs_restart;
 }
 RubberBandOptionsWindow::RubberBandOptionsWindow()
     : m_vertical_box(Gtk::Orientation::VERTICAL, 8)
 {
 
     std::vector<RubberBandOption> optionss = {
-        RubberBandOption("Engine", {"Faster", "Finer"}, {"R2", "R3"}),
-        RubberBandOption("Transients", {"Crisp", "Mixed", "Smooth"}, {"R2"}),
-        RubberBandOption("Detector", {"Compound", "Percussive", "Soft"}, {"R2"}),
-        RubberBandOption("Phase", {"Laminar", "Independent"}, {"R2"}),
-        RubberBandOption("Threading", {"Auto", "Never", "Always"}, {"R2", "R3"}), // later for R3
-        RubberBandOption("Window", {"Standard", "Short", "Long"}, {"R2", "R3"}),
-        RubberBandOption("Smoothing", {"Off", "On"}, {"R2"}),
-        RubberBandOption("Formant", {"Shifted", "Preserved"}, {"R2", "R3"}),
-        RubberBandOption("Pitch", {"HighSpeed", "HighQuality", "HighConsistency"}, {"R2", "R3"}),
-        RubberBandOption("Channels", {"Apart", "Together"}, {"R2", "R3"}),
+        RubberBandOption("Engine", {"Faster", "Finer"}, {"R2", "R3"},{"R2", "R3"}),
+        RubberBandOption("Transients", {"Crisp", "Mixed", "Smooth"}, {"R2"},{}),
+        RubberBandOption("Detector", {"Compound", "Percussive", "Soft"}, {"R2"},{}),
+        RubberBandOption("Phase", {"Laminar", "Independent"}, {"R2"},{}),
+        RubberBandOption("Threading", {"Auto", "Never", "Always"}, {"R2", "R3"}, {"R2", "R3"}), // maybe available later for R3
+        RubberBandOption("Window", {"Standard", "Short", "Long"}, {"R2", "R3"}, {"R2", "R3"}),
+        RubberBandOption("Smoothing", {"Off", "On"}, {"R2"}, {"R2", "R3"}),
+        RubberBandOption("Formant", {"Shifted", "Preserved"}, {"R2", "R3"},{}),
+        RubberBandOption("Pitch", {"HighSpeed", "HighQuality", "HighConsistency"}, {"R2", "R3"},{"R3"}),
+        RubberBandOption("Channels", {"Apart", "Together"}, {"R2", "R3"}, {"R2", "R3"}),
     };
 
     //std::map<RubberBandOption, Gtk::DropDown> drop_downs;
