@@ -107,6 +107,16 @@ Waveform::Waveform()
     hack_sound_end = NULL;
     hack_sound_position = NULL;
 
+    m_sound = NULL;
+
+    m_waveform_surface_dirty = true;
+    m_scale_surface_dirty = true;
+    m_selection_surface_dirty = true;
+    m_position_surface_dirty = true;
+    m_text_surface_dirty = true;
+
+    create_draw_surface();
+
     // m_scale_units.push_back(Waveform::ScaleUnit(10, 10, 40.0));
     // m_scale_units.push_back(Waveform::ScaleUnit(600.0, 10, 21.0, "s", 1.0));
     // m_scale_units.push_back(Waveform::ScaleUnit(300.0, 10, 20.0, "s", 1.0));
@@ -145,14 +155,6 @@ Waveform::Waveform()
     m_Drag_translation->signal_drag_begin().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_translation_begin));
     m_Drag_translation->signal_drag_update().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_translation_update));
     m_Drag_translation->signal_drag_end().connect(sigc::mem_fun(*this, &Waveform::on_drawingarea_drag_translation_end));
-
-    // has_selection = false;
-    m_waveform_surface_dirty = true;
-    m_scale_surface_dirty = true;
-    m_selection_surface_dirty = true;
-    m_position_surface_dirty = true;
-    m_text_surface_dirty = true;
-    create_draw_surface();
 
     // zoom (scroll wheel)
     m_Scroll = Gtk::EventControllerScroll::create();
@@ -215,7 +217,7 @@ void Waveform::on_mouse_motion(double x, double y)
 // {
 //     return true;
 // }
-void Waveform::set_sound(Sound * sound)
+void Waveform::set_sound(Sound *sound)
 {
     m_sound = sound;
 
@@ -251,8 +253,12 @@ void Waveform::create_draw_surface()
 }
 void Waveform::on_drawingarea_draw(const Cairo::RefPtr<Cairo::Context> &cr, int width, int height)
 {
+
     cr->set_source_rgba(0, 0, 0, 1.0);
     cr->paint();
+
+    if (m_sound == NULL)
+        return;
 
     if (m_waveform_surface_dirty)
         draw_sound();
@@ -406,7 +412,7 @@ void Waveform::draw_text()
     /*    float left =  ((float)selection_start) / ((float)m_sound->get_frame_count()); //* (float)sw;
         float right = ((float)selection_end) / ((float)m_sound->get_frame_count());// * (float)sw;
       */
-    float samplerate_f = (float) (m_sound->get_samplerate());
+    float samplerate_f = (float)(m_sound->get_samplerate());
     float left_s = ((float)selection_start) / samplerate_f;
     float right_s = ((float)selection_end) / samplerate_f;
     float margin_top = font_size * 1.1;
@@ -554,6 +560,9 @@ Waveform::SelectionHotHandle Waveform::closest_hot_handle(double x)
 
 void Waveform::on_drawingarea_drag_selection_begin(double start_x, double start_y)
 {
+    if (m_sound == NULL)
+        return;
+
     selection_hot_handle = closest_hot_handle(start_x);
 
     switch (selection_hot_handle)
@@ -576,6 +585,8 @@ void Waveform::on_drawingarea_drag_selection_begin(double start_x, double start_
 
 void Waveform::on_drawingarea_drag_selection_update(double offset_x, double offset_y)
 {
+    if (m_sound == NULL)
+        return;
 
     long d_position = get_frame_number_at(offset_x) - get_frame_number_at((long)0);
     switch (selection_hot_handle)
@@ -596,16 +607,22 @@ void Waveform::on_drawingarea_drag_selection_update(double offset_x, double offs
 
 void Waveform::on_drawingarea_drag_selection_end(double offset_x, double offset_y)
 {
+    if (m_sound == NULL)
+        return;
     selection_hot_handle = SelectionHotHandle::NONE;
 }
 
 void Waveform::on_drawingarea_drag_translation_begin(double start_x, double start_y)
 {
+    if (m_sound == NULL)
+        return;
     translation_initial_visible_start = visible_start;
     translation_initial_visible_end = visible_end;
 }
 void Waveform::on_drawingarea_drag_translation_update(double offset_x, double offset_y)
 {
+    if (m_sound == NULL)
+        return;
     long d_translation = get_frame_number_at(offset_x) - get_frame_number_at((long)0);
 
     if ((translation_initial_visible_start - d_translation) < 0)
@@ -629,6 +646,8 @@ void Waveform::on_drawingarea_drag_translation_update(double offset_x, double of
 }
 void Waveform::on_drawingarea_drag_translation_end(double offset_x, double offset_y)
 {
+    if (m_sound == NULL)
+        return;
 }
 
 void Waveform::set_selection_bounds(int _selection_start, int _selection_end)
@@ -649,9 +668,13 @@ void Waveform::set_selection_bounds(int _selection_start, int _selection_end)
 
 void Waveform::on_drawingarea_scroll_begin()
 {
+    if (m_sound == NULL)
+        return;
 }
 bool Waveform::on_drawingarea_scroll(double x, double y)
 {
+    if (m_sound == NULL)
+        return true;
     zoom_around(get_frame_number_at(mouse_x), (y > 0));
     return true;
 }
