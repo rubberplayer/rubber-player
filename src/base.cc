@@ -106,6 +106,8 @@ public:
   long m_selection_start;
   long m_selection_end;
   void set_selection_bounds(long selection_start, long selection_end);
+
+  void load_sound(std::string path);
 };
 
 void MainWindow::set_selection_bounds(long selection_start, long selection_end)
@@ -127,11 +129,11 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
   //  hack
 
   sound.load("/home/vivien/Bureau/redhouse-clip-mono.flac");
-  m_Waveform.set_sound(&sound);
-  player.set_sound(&sound);
+  //  m_Waveform.set_sound(&sound);
+  // player.set_sound(&sound);
 
   m_Waveform.set_hack_sound_start_sound_end_sound_position(&player.m_sound_start, &player.m_sound_end, &player.m_sound_position);
-  
+
   // vertical box container
   m_VBox.set_margin(16);
   set_child(m_VBox);
@@ -191,7 +193,6 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
   m_Dialog_open_audio_file->set_transient_for(*this);
   m_Dialog_open_audio_file->set_modal(true);
   m_Dialog_open_audio_file->signal_response().connect(sigc::bind(sigc::mem_fun(*this, &MainWindow::on_open_audio_file_dialog_response), m_Dialog_open_audio_file));
-  
 }
 
 void MainWindow::on_time_ratio_value_changed()
@@ -219,8 +220,16 @@ void MainWindow::on_button_open_clicked()
   m_Dialog_open_audio_file->show();
 }
 
+void MainWindow::load_sound(std::string path)
+{
+  printf("load sound a filename path %s\n", path.c_str());
+  sound.load("/home/vivien/Bureau/redhouse-clip-mono.flac");
+  m_Waveform.set_sound(&sound);
+  player.set_sound(&sound);
+}
+
 void MainWindow::on_open_audio_file_dialog_response(int response_id, Glib::RefPtr<Gtk::FileChooserNative> &dialog)
-{  
+{
   Glib::RefPtr<Gio::File> filename = m_Dialog_open_audio_file->get_file();
   if (filename == NULL)
   {
@@ -229,7 +238,7 @@ void MainWindow::on_open_audio_file_dialog_response(int response_id, Glib::RefPt
   else
   {
     std::string path = filename->get_path();
-    printf("got a filename path %s\n", path.c_str());
+    load_sound(path);
   }
   m_Dialog_open_audio_file->hide();
 }

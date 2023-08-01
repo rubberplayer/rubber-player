@@ -7,6 +7,7 @@ Sound::Sound()
 Sound::~Sound()
 {
   printf("** destroys a sound\n");
+  if (ptr != NULL) free(ptr);
 }
 void Sound::load(std::string ppath)
 {

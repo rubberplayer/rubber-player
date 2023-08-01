@@ -12,16 +12,16 @@ Player::~Player()
     {
         m_the_play_thread.join();
     }
-  //  if (m_pa_simple != NULL)
-  //  {
-  //      pa_simple_free(m_pa_simple);
-  //      m_pa_simple = NULL;
-  //  }
-  //  if (rubberBandStretcher != NULL)
-  //  {
-  //      delete rubberBandStretcher;
-  //      rubberBandStretcher = NULL;
-  //  }
+    //  if (m_pa_simple != NULL)
+    //  {
+    //      pa_simple_free(m_pa_simple);
+    //      m_pa_simple = NULL;
+    //  }
+    //  if (rubberBandStretcher != NULL)
+    //  {
+    //      delete rubberBandStretcher;
+    //      rubberBandStretcher = NULL;
+    //  }
 }
 
 Player::Player()
@@ -43,6 +43,8 @@ void Player::connect_to_pulseaudio(int channels, int framerate)
     m_pa_sample_spec.format = PA_SAMPLE_FLOAT32;
     m_pa_sample_spec.channels = channels;
     m_pa_sample_spec.rate = framerate;
+
+    int pa_connect_error = 0;
     m_pa_simple = pa_simple_new(NULL,             // Use the default server.
                                 APPLICATION_NAME, // Our application's name.
                                 PA_STREAM_PLAYBACK,
@@ -51,9 +53,9 @@ void Player::connect_to_pulseaudio(int channels, int framerate)
                                 &m_pa_sample_spec, // Our sample format.
                                 NULL,              // Use default channel map
                                 NULL,              // Use default buffering attributes.
-                                NULL               // Ignore error code.
+                                &pa_connect_error  // Ignore error code.
     );
-    printf("is pa object null ? %d \n", m_pa_simple);
+    printf("is pa object null ? %d , error? %d , error message : %s \n", m_pa_simple, pa_connect_error, pa_strerror(pa_connect_error));
 };
 void Player::initialize_RubberBand(int channels, int samplerate)
 {
@@ -141,8 +143,8 @@ void Player::play_always()
         rubberBandStretcher->setTimeRatio(time_ratio);
         rubberBandStretcher->setPitchScale(pitch_scale);
 
-    //    printf("sound samplerate : %d ; channels : %d, selection [%d,%d] ; pitch scale : %f ; time_ratio : %f, position : %d, time position : %f\n",
-    //           m_sound->sfinfo.samplerate, m_sound->sfinfo.channels, selection_left, selection_right, pitch_scale, time_ratio, position, time_position);
+        //    printf("sound samplerate : %d ; channels : %d, selection [%d,%d] ; pitch scale : %f ; time_ratio : %f, position : %d, time position : %f\n",
+        //           m_sound->sfinfo.samplerate, m_sound->sfinfo.channels, selection_left, selection_right, pitch_scale, time_ratio, position, time_position);
 
         if (position < selection_left)
             position = selection_left;
@@ -182,9 +184,9 @@ void Player::play_always()
             }
             samples_sent_to_sink += retrieve_from_rubberband_size;
 
-            if (pa_write_error != 0)
+            if (pa_write_error < 0)
             {
-                printf("error while playing ? %d : %s\n", pa_write_error, pa_strerror(pa_write_error));
+                printf("error while writing to pa sink (%d samples) ? %d %d : %s\n", retrieve_from_rubberband_size, pa_write_error, pa_strerror(pa_write_error));
             }
         }
         position += block_size;
@@ -198,7 +200,12 @@ void Player::play_always()
         }
     }
     printf("end of thread\n");
-    
+    int pa_drain_error;
+    if (pa_simple_drain(m_pa_simple, &pa_drain_error) < 0)
+    {
+        fprintf(stderr, __FILE__ ": pa_simple_drain() failed: %s\n", pa_strerror(pa_drain_error));
+    }
+
     free(rubberband_output);
     if (m_pa_simple != NULL)
     {
@@ -226,10 +233,22 @@ void Player::stop_playing()
 
 void Player::set_sound(Sound *sound)
 {
-    stop_playing();
+    // terminate potential previous thread
+    m_terminate_the_play_thread.store(true);
+    if (m_the_play_thread.joinable())
+    {
+        m_the_play_thread.join();
+    }
+
+    // set new sound
     m_sound = sound;
     set_sound_start(0);
     set_sound_end(m_sound->get_frame_count());
+    m_sound_position.store(0);
+    m_terminate_the_play_thread.store(false);
+    m_play_started.store(false);
+
+    // start the thread
     m_the_play_thread = std::thread([this]
                                     { play_always(); });
 }
