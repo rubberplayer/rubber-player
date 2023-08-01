@@ -503,41 +503,51 @@ void Waveform::draw_sound()
     cr->set_source_rgb(0, 0, 0);
     cr->paint();
 
+    
     auto sw = m_waveform_surface->get_width();
     auto sh = m_waveform_surface->get_height();
 
     cr->set_source_rgb(1.0, 0.5, 0.25);
+    
     double visible_frames = (double)(visible_end - visible_start);
     float *sound_data = m_sound->get_sound_data();
-    for (int i = 0; i < sw; i++)
+    int channels = m_sound->get_channels();
+
+    bool separated_channels = true; 
+    float channel_height = (separated_channels)?(sh/(float)channels):(sh);
+
+    for (int channel = 0; channel < channels; channel++)
     {
-        long p0 = visible_start + (long)(((double)i / (double)sw) * visible_frames);
-        long p1;
-        if (i == (sw - 1))
+        int channel_offset = separated_channels?(channel * channel_height):0;
+        cr->set_source_rgb(1.0, 0.5, 0.25);       
+        
+        for (int i = 0; i < sw; i++)
         {
-            p1 = visible_end;
+            long p0 = visible_start + (long)(((double)i / (double)sw) * visible_frames);
+            long p1;
+            if (i == (sw - 1))
+            {
+                p1 = visible_end;
+            }
+            else
+            {
+                p1 = visible_start + (long)(((double)(i + 1) / (double)sw) * visible_frames);
+            }
+            float max = -1;
+            float min = 1;
+            for (int j = p0; j <= p1; j++)
+            {
+                float value = sound_data[j * channels + channel];
+                max = std::max(max, value);
+                min = std::min(min, value);
+            }
+            int x = i;
+            int y = channel_offset + ((min + 1.0) / 2.0) * channel_height;
+            int height = std::max(1.0, (((max - min)) / 2.0) * channel_height);
+            int width = 1;
+            cr->rectangle(x, y, width, height);
+            cr->fill();
         }
-        else
-        {
-            p1 = visible_start + (long)(((double)(i + 1) / (double)sw) * visible_frames);
-        }
-        float max = -1;
-        float min = 1;
-        for (int j = p0; j <= p1; j++)
-        {
-            float value = sound_data[j];
-            max = std::max(max, value);
-            min = std::min(min, value);
-        }
-        int x = i;
-        int height = std::max(1.0, (((max - min)) / 2.0) * sh);
-        int width = 1;
-        cr->rectangle(
-            x,
-            ((min + 1.0) / 2.0) * sh,
-            width,
-            height);
-        cr->fill();
     }
 }
 

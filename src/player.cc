@@ -187,7 +187,7 @@ void Player::play_always()
             if (pa_write_error < 0)
             {
                 printf("pa_write_error\n");
-                printf("error while writing to pa sink (%d samples) ? 0x%h %d : %s\n", retrieve_from_rubberband_size, pa_write_error, pa_write_error, pa_strerror(pa_write_error));
+                printf("error while writing to pa sink (%d samples) ? d : %s\n", retrieve_from_rubberband_size, pa_write_error, pa_strerror(pa_write_error));
             }
         }
         position += block_size;
