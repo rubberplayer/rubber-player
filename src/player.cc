@@ -62,6 +62,7 @@ void Player::initialize_RubberBand(int channels, int samplerate)
     RubberBand::RubberBandStretcher::Options rubberband_options = RubberBand::RubberBandStretcher::DefaultOptions | RubberBand::RubberBandStretcher::OptionProcessRealTime;
     rubberBandStretcher = new RubberBand::RubberBandStretcher(samplerate, channels, rubberband_options);
     printf("RubberBand engine version : %d\n", rubberBandStretcher->getEngineVersion());
+    printf("RubberBand channel count : %d\n", rubberBandStretcher->getChannelCount());
 }
 void Player::play_always()
 {
@@ -70,6 +71,26 @@ void Player::play_always()
     initialize_RubberBand(m_sound->get_channels(), m_sound->get_samplerate());
 
     long position = 0;
+
+    long max_block_size = 256 * 4; // max block size to be fed to rubberband
+    // float * rubberband_desinterleaved_input[m_sound->get_channels()] = malloc( max_block_size * sizeof(float) * m_sound->get_channels() );
+    //    float **rubberband_desinterleaved_input = new float *[m_sound->get_channels()];
+    //    for (long c = 0; c < m_sound->get_channels(); c++)
+    //    {
+    //        rubberband_desinterleaved_input[c] = new float[max_block_size];
+    //        /* for (long p = 0; p < max_block_size; p++){
+    //             printf("%d %f\n",p,rubberband_desinterleaved_input[c][p]);
+    //         }
+    //         */
+    //    }
+    // float *rubberband_desinterleaved_input = (float *)malloc(max_block_size * sizeof(float) * m_sound->get_channels());
+
+    float **rubberband_desinterleaved_input = new float *[m_sound->get_channels()];
+    for (int i = 0; i < m_sound->get_channels(); ++i)
+    {
+        rubberband_desinterleaved_input[i] = new float[max_block_size];
+    }
+
     size_t rubberband_output_block_size = 2 * 3 * 4 * 5 * 6 * 7 * 256;
     float *rubberband_output = (float *)malloc(rubberband_output_block_size * sizeof(float));
 
@@ -136,7 +157,7 @@ void Player::play_always()
         if (selection_right == selection_left)
         {
             // collapesed selection
-            selection_right = m_sound->read_count;
+            selection_right = m_sound->get_frame_count();
         }
         double pitch_scale = m_pitch_scale.load();
         double time_ratio = m_time_ratio.load();
@@ -152,20 +173,28 @@ void Player::play_always()
         if (position >= selection_right)
             position = selection_left;
 
-        void *sound_pointer = m_sound->ptr + position;
-
         size_t samples_requiered = rubberBandStretcher->getSamplesRequired();
 
-        long max_block_size = 256 * 4;
         long block_size = std::min(max_block_size, (long)samples_requiered);
         // printf("samples_required %d, block_size %d\n",samples_requiered,block_size);
         if ((position + block_size) >= selection_right)
         {
             block_size = selection_right - position;
         }
-        float *ppp = m_sound->ptr + position;
+        float *ppp = m_sound->ptr + position * m_sound->get_channels();
+        {
+            for (long c = 0; c < m_sound->get_channels(); c++)
+            {
+                for (long i = 0; i < block_size; i++)
+                {
+                    rubberband_desinterleaved_input[c][i] = *(ppp + (m_sound->get_channels() * i) + c);
+                }
+            }
+        }
+
         bool last_process = false;
-        rubberBandStretcher->process(&ppp, block_size, last_process);
+        //rubberBandStretcher->process(&ppp, block_size, last_process);
+         rubberBandStretcher->process(rubberband_desinterleaved_input, block_size, last_process);
 
         int available = rubberBandStretcher->available();
         int retrieve_from_rubberband_size = std::min((int)rubberband_output_block_size, available);
@@ -187,7 +216,7 @@ void Player::play_always()
             if (pa_write_error < 0)
             {
                 printf("pa_write_error\n");
-                printf("error while writing to pa sink (%d samples) ? d : %s\n", retrieve_from_rubberband_size, pa_write_error, pa_strerror(pa_write_error));
+                printf("error while writing to pa sink (%d samples) ? %d : %s\n", retrieve_from_rubberband_size, pa_write_error, pa_strerror(pa_write_error));
             }
         }
         position += block_size;
@@ -200,19 +229,29 @@ void Player::play_always()
             std::this_thread::sleep_for(std::chrono::milliseconds(16));
         }
     }
+
     printf("end of thread\n");
+
     int pa_drain_error;
     if (pa_simple_drain(m_pa_simple, &pa_drain_error) < 0)
     {
         fprintf(stderr, __FILE__ ": pa_simple_drain() failed: %s\n", pa_strerror(pa_drain_error));
     }
 
+    for (int i = 0; i < m_sound->get_channels(); ++i)
+    {
+        delete[] rubberband_desinterleaved_input[i];
+    }
+    delete[] rubberband_desinterleaved_input;
+
     free(rubberband_output);
+
     if (m_pa_simple != NULL)
     {
         pa_simple_free(m_pa_simple);
         m_pa_simple = NULL;
     }
+
     if (rubberBandStretcher != NULL)
     {
         delete rubberBandStretcher;
@@ -231,7 +270,8 @@ void Player::stop_playing()
     printf("Player::stop_playing\n");
     m_play_started.store(false);
 }
-void Player::stop_playing_thread(){
+void Player::stop_playing_thread()
+{
     // terminate potential previous thread
     m_terminate_the_play_thread.store(true);
     if (m_the_play_thread.joinable())
@@ -250,7 +290,7 @@ void Player::set_sound(Sound *sound)
     set_sound_start(0);
     set_sound_end(m_sound->get_frame_count());
     m_sound_position.store(0);
-    
+
     // start the thread
     m_the_play_thread = std::thread([this]
                                     { play_always(); });

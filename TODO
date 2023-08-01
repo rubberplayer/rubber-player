@@ -1,1 +1,5 @@
 - off by one selection end in waveform
+- group all color choices
+- waveform channel different colors
+- handle bad soundfile / not a soundfile
+- drag and drog soundfile
