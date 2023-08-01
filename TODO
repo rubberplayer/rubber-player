@@ -5,7 +5,7 @@
 [x] handle bad soundfile / not a soundfile
 - config rubberband
 - fix noop  pa_write_error / error while writing to pa sink (260 samples) ? -487077284 : (null)
-
+- maybe update to ^4.10
 - rubberband options
 
 OptionProcessOffline 	
@@ -57,7 +57,7 @@ void 	setFormantScale (double scale)
  	Set a pitch scale for the vocal formant envelope separately from the overall pitch scale.
     -- This function is provided for special effects only. 
     -- is supported only in the R3
-    
+
 void 	setFrequencyCutoff (int n, float f) 
  	Set the value of internal frequency cutoff n to f Hz. 
     -- This function is not for general use and 

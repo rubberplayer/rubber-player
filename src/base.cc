@@ -8,8 +8,9 @@
 #include "./player.h"
 #include "./sound.h"
 #include "./waveform.h"
-//////////////////////////////////
+#include "./rboptions.h"
 
+//////////////////////////////////
 ///
 /// https://docs.gtk.org/gtk4/class.FileDialog.html since 4.10
 ///
@@ -125,6 +126,7 @@ public:
   Gtk::MessageDialog *m_pMessageDialog;
 
   void show_message_dialog(std::string m1, std::string m2);
+  RubberBandOptionsWindow* rubberband_options_window;
 };
 /*
 void MainWindow::set_selection_bounds(long selection_start, long selection_end)
@@ -142,14 +144,6 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
 {
   set_title(APPLICATION_NAME);
   set_default_size(600, 250);
-
-  // sound.load("/home/vivien/Bureau/redhouse-clip-mono-short.flac");
-  //  sound.load("/home/vivien/Bureau/redhouse-mono.wav");
-  //  hack
-
-  // sound.load("/home/vivien/Bureau/redhouse-clip-mono.flac");
-  //   m_Waveform.set_sound(&sound);
-  //  player.set_sound(&sound);
 
   m_Waveform.set_hack_sound_start_sound_end_sound_position(&player.m_sound_start, &player.m_sound_end, &player.m_sound_position);
 
@@ -225,6 +219,15 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
   target->signal_drop().connect(
       sigc::mem_fun(*this, &MainWindow::on_button_drop_drop_data), false);
   add_controller(target);
+
+  rubberband_options_window = new RubberBandOptionsWindow;
+  rubberband_options_window->show();
+  
+  //auto gtk_builder = new Gtk::Builder();
+  //std::string ui_file_path("/home/vivien/src/test-cambalache/test cambalache.ui");
+  //Glib::RefPtr<Gtk::Builder> gtk_builder = Gtk::Builder::create_from_file(ui_file_path);
+  
+
 }
 
 void MainWindow::on_time_ratio_value_changed()
