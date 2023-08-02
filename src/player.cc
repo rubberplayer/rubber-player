@@ -54,7 +54,7 @@ void Player::connect_to_pulseaudio(int channels, int framerate)
                                 NULL,              // Use default buffering attributes.
                                 &pa_connect_error  // Ignore error code.
     );
-    printf("is pa object null ? %d , error? %d , error message : %s \n", m_pa_simple, pa_connect_error, pa_strerror(pa_connect_error));
+    printf("is pa object null ? %p , error? %d , error message : %s \n", m_pa_simple, pa_connect_error, pa_strerror(pa_connect_error));
 };
 void Player::initialize_RubberBand(int channels, int samplerate)
 {

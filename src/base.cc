@@ -126,7 +126,7 @@ public:
   Gtk::MessageDialog *m_pMessageDialog;
 
   void show_message_dialog(std::string m1, std::string m2);
-  RubberBandOptionsWindow* rubberband_options_window;
+  RubberBandOptionsWindow *rubberband_options_window;
 };
 /*
 void MainWindow::set_selection_bounds(long selection_start, long selection_end)
@@ -222,12 +222,10 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
 
   rubberband_options_window = new RubberBandOptionsWindow;
   rubberband_options_window->show();
-  
-  //auto gtk_builder = new Gtk::Builder();
-  //std::string ui_file_path("/home/vivien/src/test-cambalache/test cambalache.ui");
-  //Glib::RefPtr<Gtk::Builder> gtk_builder = Gtk::Builder::create_from_file(ui_file_path);
-  
 
+  // auto gtk_builder = new Gtk::Builder();
+  // std::string ui_file_path("/home/vivien/src/test-cambalache/test cambalache.ui");
+  // Glib::RefPtr<Gtk::Builder> gtk_builder = Gtk::Builder::create_from_file(ui_file_path);
 }
 
 void MainWindow::on_time_ratio_value_changed()
