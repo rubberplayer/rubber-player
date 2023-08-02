@@ -10,14 +10,43 @@ RubberBandOptionsWindow::RubberBandOption::RubberBandOption(std::string name, st
     m_engines = engines;
     m_needs_restart = needs_restart;
 }
+void RubberBandOptionsWindow::set_sensitive_from_revision()
+{
+    //  get current_engine_revision
+    std::string current_engine_revision;
+    for (auto p_option : options)
+    {
+        if (p_option->m_name.compare("Engine") == 0)
+        {
+            std::string current_engine = p_option->m_values[p_option->widget->get_selected()];
+            current_engine_revision = (current_engine.compare("Faster") == 0) ? "R2" : "R3";
+            break;
+        }
+    }
+    for (auto p_option : options)
+    {
+        bool match_current_engine_revision = false;
+        for (auto e : p_option->m_engines)
+        {
+            if (e.compare(current_engine_revision) == 0)
+            {
+                match_current_engine_revision = true;
+            }
+        }
+        p_option->widget->set_sensitive(match_current_engine_revision);
+    }
+}
 
 void RubberBandOptionsWindow::selected_item_changed(const Gtk::DropDown *dropdown, RubberBandOption *rubber_band_option)
 {
     auto name = rubber_band_option->m_name;
     int selected = dropdown->get_selected();
     auto selected_value = rubber_band_option->m_values[selected];
-
     printf("changed %s to %s\n", name.c_str(), selected_value.c_str());
+    if (rubber_band_option->m_name.compare("Engine") == 0){
+        set_sensitive_from_revision();
+    }
+    
 }
 RubberBandOptionsWindow::RubberBandOptionsWindow()
     : m_vertical_box(Gtk::Orientation::VERTICAL, 8)
@@ -65,10 +94,10 @@ RubberBandOptionsWindow::RubberBandOptionsWindow()
 
         // drop down
         Gtk::DropDown *option_dropdown = new Gtk::DropDown();
-        // option_dropdown.set_sensitive(false);
         option_dropdown->set_halign(Gtk::Align::END);
+        p_option->widget = option_dropdown;
 
-        // values
+        // model + values
         std::vector<Glib::ustring> strings;
         for (auto value : p_option->m_values)
         {
@@ -77,9 +106,13 @@ RubberBandOptionsWindow::RubberBandOptionsWindow()
         auto model = Gtk::StringList::create(strings);
         option_dropdown->set_model(model);
         option_horizontal_box.append(*option_dropdown);
+
+        // signal changed
         option_dropdown->property_selected().signal_changed().connect(
             sigc::bind(sigc::mem_fun(*this, &RubberBandOptionsWindow::selected_item_changed), option_dropdown, p_option));
     }
+    
+    set_sensitive_from_revision();
 
     auto option_validate_button = Gtk::Button();
     option_validate_button.set_label("Appliquer");

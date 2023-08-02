@@ -4,8 +4,6 @@ class RubberBandOptionsWindow : public Gtk::Window
 {
 protected:
     Gtk::Box m_vertical_box;
-    //    Gtk::DropDown some_dropdown;
-
     class RubberBandOption
     {
     public:
@@ -14,10 +12,12 @@ protected:
         std::vector<std::string> m_values;
         std::vector<std::string> m_engines;
         std::vector<std::string> m_needs_restart;        
+        Gtk::DropDown* widget = NULL;
     };
     std::vector<RubberBandOption*> options;
 
 public:
     RubberBandOptionsWindow();
     void selected_item_changed(const Gtk::DropDown *dropdown, RubberBandOption *rubber_band_option);
+    void set_sensitive_from_revision();
 };
