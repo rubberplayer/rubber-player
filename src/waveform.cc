@@ -323,7 +323,6 @@ void Waveform::draw_scale()
 
     std::set<int> used_positions;
 
-    bool first_labelled = false;
     int previous_caption_shown_count = 0;
     const Waveform::ScaleUnit *caption_scale_unit = NULL;
     double unit_label_font_size = 12.0;
@@ -347,7 +346,6 @@ void Waveform::draw_scale()
 
         double left_s = std::floor(visible_start_s / unit_length_s) * unit_length_s;
         double right_s = std::ceil(visible_end_s / unit_length_s) * unit_length_s;
-        int label_count = 0;
         for (double x_s = left_s; x_s <= right_s; x_s += unit_length_s)
         {
             double x = get_pixel_at((long)(x_s * ((double)(m_sound->get_samplerate()))));
@@ -378,7 +376,7 @@ void Waveform::draw_scale()
     {
         // printf("caption_scale_unit::::: %s\n", caption_scale_unit->to_string().c_str());
         double unit_length_s = caption_scale_unit->m_period_s;                   // 0.1;
-        double unit_display_height_px = caption_scale_unit->m_display_height_px; // scale_unit.m_period_s 20;
+        //        double unit_display_height_px = caption_scale_unit->m_display_height_px; // scale_unit.m_period_s 20;
 
         double left_s = std::floor(visible_start_s / unit_length_s) * unit_length_s;
         double right_s = std::ceil(visible_end_s / unit_length_s) * unit_length_s;
@@ -408,15 +406,7 @@ void Waveform::draw_text()
     cr->paint();
 
     float font_size = 12.0;
-    /*auto sw = m_waveform_surface->get_width();
-    auto sh = m_waveform_surface->get_height();
-    */
-    /*    float left =  ((float)selection_start) / ((float)m_sound->get_frame_count()); //* (float)sw;
-        float right = ((float)selection_end) / ((float)m_sound->get_frame_count());// * (float)sw;
-      */
-    float samplerate_f = (float)(m_sound->get_samplerate());
-    float left_s = ((float)selection_start) / samplerate_f;
-    float right_s = ((float)selection_end) / samplerate_f;
+
     float margin_top = font_size * 1.1;
     float line_height = font_size;
     float margin_left = 5;
@@ -444,7 +434,6 @@ void Waveform::draw_position()
     cr->set_source_rgba(0, 0, 0, 0.0);
     cr->paint();
 
-    auto sw = m_waveform_surface->get_width();
     auto sh = m_waveform_surface->get_height();
 
     if (hack_sound_position != NULL)
@@ -466,7 +455,7 @@ void Waveform::draw_selection()
     cr->set_operator(Cairo::Context::Operator::OVER);
     cr->set_source_rgba(0, 0, 0, 0.0);
     cr->paint();
-    auto sw = m_waveform_surface->get_width();
+
     auto sh = m_waveform_surface->get_height();
 
     cr->set_source_rgba(0.3, 0.8, 0.7, 0.5);

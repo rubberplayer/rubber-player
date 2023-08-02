@@ -59,9 +59,7 @@ void Player::connect_to_pulseaudio(int channels, int framerate)
 void Player::initialize_RubberBand(int channels, int samplerate)
 {
     RubberBand::RubberBandStretcher::Options rubberband_options =
-        RubberBand::RubberBandStretcher::DefaultOptions 
-        | RubberBand::RubberBandStretcher::OptionProcessRealTime
-        | RubberBand::RubberBandStretcher::OptionEngineFiner;
+        RubberBand::RubberBandStretcher::DefaultOptions | RubberBand::RubberBandStretcher::OptionProcessRealTime | RubberBand::RubberBandStretcher::OptionEngineFiner;
 
     rubberBandStretcher = new RubberBand::RubberBandStretcher(samplerate, channels, rubberband_options);
     printf("RubberBand engine version : %d\n", rubberBandStretcher->getEngineVersion());
@@ -145,8 +143,6 @@ void Player::play_always()
             }
             previous_play_state = l_play_started;
         }
-
-        double time_position = position / (double)m_sound->sfinfo.samplerate;
 
         long selection_start = m_sound_start.load();
         long selection_end = m_sound_end.load();

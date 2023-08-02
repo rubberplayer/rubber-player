@@ -29,7 +29,16 @@ Libsndfile is able to open lots of formats (wav, aif, mp3, ogg, flac) but not ev
 
 ## Compile
 
-run  `./build.sh`
+### using a direct command
+
+    `./build.sh`
+    ./rubber_player
+
+### using meson
+
+    meson setup builddir
+    meson compile -C builddir    
+    ./builddir/rubber_player
 
 ## Integrated libraries
 
