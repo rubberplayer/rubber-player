@@ -13,14 +13,11 @@ protected:
         std::string m_name;
         std::vector<std::string> m_values;
         std::vector<std::string> m_engines;
-        std::vector<std::string> m_needs_restart;
+        std::vector<std::string> m_needs_restart;        
     };
-    std::vector<RubberBandOption> options;
+    std::vector<RubberBandOption*> options;
 
 public:
     RubberBandOptionsWindow();
-    // void selected_item_changed(const Gtk::DropDown *dropdown,  const Glib::RefPtr<Gtk::ListItem> &item);
-    // void selected_item_changed();
-    //void selected_item_changed(const Gtk::DropDown *dropdown, RubberBandOption *rubber_band_option);
-    void selected_item_changed(const Gtk::DropDown *dropdown, std::string * m_name);
+    void selected_item_changed(const Gtk::DropDown *dropdown, RubberBandOption *rubber_band_option);
 };

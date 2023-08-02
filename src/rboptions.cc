@@ -10,31 +10,30 @@ RubberBandOptionsWindow::RubberBandOption::RubberBandOption(std::string name, st
     m_engines = engines;
     m_needs_restart = needs_restart;
 }
-// void RubberBandOptionsWindow::selected_item_changed(const Gtk::DropDown *dropdown, const Glib::RefPtr<Gtk::ListItem> &item)
-void RubberBandOptionsWindow::selected_item_changed(const Gtk::DropDown *dropdown, std::string *m_name)
-// void RubberBandOptionsWindow::selected_item_changed()
+
+void RubberBandOptionsWindow::selected_item_changed(const Gtk::DropDown *dropdown, RubberBandOption *rubber_band_option)
 {
-    // printf("changed %s\n", rubber_band_option->m_name.c_str());
-    printf("changed %s\n", m_name);
+    auto name = rubber_band_option->m_name;
     int selected = dropdown->get_selected();
-    printf("changed %d\n", selected);
-    printf("changed %s\n", options[0].m_name.c_str());
+    auto selected_value = rubber_band_option->m_values[selected];
+
+    printf("changed %s to %s\n", name.c_str(), selected_value.c_str());
 }
 RubberBandOptionsWindow::RubberBandOptionsWindow()
     : m_vertical_box(Gtk::Orientation::VERTICAL, 8)
 {
 
     options = {
-        RubberBandOption("Engine", {"Faster", "Finer"}, {"R2", "R3"}, {"R2", "R3"}),
-        RubberBandOption("Transients", {"Crisp", "Mixed", "Smooth"}, {"R2"}, {}),
-        RubberBandOption("Detector", {"Compound", "Percussive", "Soft"}, {"R2"}, {}),
-        RubberBandOption("Phase", {"Laminar", "Independent"}, {"R2"}, {}),
-        RubberBandOption("Threading", {"Auto", "Never", "Always"}, {"R2", "R3"}, {"R2", "R3"}), // maybe available later for R3
-        RubberBandOption("Window", {"Standard", "Short", "Long"}, {"R2", "R3"}, {"R2", "R3"}),
-        RubberBandOption("Smoothing", {"Off", "On"}, {"R2"}, {"R2", "R3"}),
-        RubberBandOption("Formant", {"Shifted", "Preserved"}, {"R2", "R3"}, {}),
-        RubberBandOption("Pitch", {"HighSpeed", "HighQuality", "HighConsistency"}, {"R2", "R3"}, {"R3"}),
-        RubberBandOption("Channels", {"Apart", "Together"}, {"R2", "R3"}, {"R2", "R3"}),
+        new RubberBandOption("Engine", {"Faster", "Finer"}, {"R2", "R3"}, {"R2", "R3"}),
+        new RubberBandOption("Transients", {"Crisp", "Mixed", "Smooth"}, {"R2"}, {}),
+        new RubberBandOption("Detector", {"Compound", "Percussive", "Soft"}, {"R2"}, {}),
+        new RubberBandOption("Phase", {"Laminar", "Independent"}, {"R2"}, {}),
+        new RubberBandOption("Threading", {"Auto", "Never", "Always"}, {"R2", "R3"}, {"R2", "R3"}), // maybe available later for R3
+        new RubberBandOption("Window", {"Standard", "Short", "Long"}, {"R2", "R3"}, {"R2", "R3"}),
+        new RubberBandOption("Smoothing", {"Off", "On"}, {"R2"}, {"R2", "R3"}),
+        new RubberBandOption("Formant", {"Shifted", "Preserved"}, {"R2", "R3"}, {}),
+        new RubberBandOption("Pitch", {"HighSpeed", "HighQuality", "HighConsistency"}, {"R2", "R3"}, {"R3"}),
+        new RubberBandOption("Channels", {"Apart", "Together"}, {"R2", "R3"}, {"R2", "R3"}),
     };
 
     // std::map<RubberBandOption, Gtk::DropDown> drop_downs;
@@ -49,17 +48,7 @@ RubberBandOptionsWindow::RubberBandOptionsWindow()
     m_vertical_box.set_margin_top(10);
     m_vertical_box.set_margin_bottom(10);
 
-    //    m_vertical_box.append(some_dropdown);
-    //  auto model = Gtk::StringList::create({"a", "b"});
-    //  some_dropdown.set_model(model);
-    //  some_dropdown.set_selected(1);
-
-    // some_dropdown.property_selected().signal_changed().connect(
-    //   sigc::bind(sigc::mem_fun(*this, &RubberBandOptionsWindow::selected_item_changed),&some_dropdown));
-
-    // target->signal_drop().connect(sigc::mem_fun(*this, &MainWindow::on_button_drop_drop_data), false);
-
-    for (auto option : options)
+    for (auto p_option : options)
     {
         // container
         auto option_horizontal_box = Gtk::Box();
@@ -68,7 +57,7 @@ RubberBandOptionsWindow::RubberBandOptionsWindow()
 
         // label
         auto option_label = Gtk::Label();
-        option_label.set_text(option.m_name);
+        option_label.set_text(p_option->m_name);
         option_label.set_halign(Gtk::Align::START);
         option_label.set_hexpand();
         option_label.set_margin_end(10);
@@ -81,42 +70,19 @@ RubberBandOptionsWindow::RubberBandOptionsWindow()
 
         // values
         std::vector<Glib::ustring> strings;
-        for (auto value : option.m_values)
+        for (auto value : p_option->m_values)
         {
             strings.push_back(value);
         }
         auto model = Gtk::StringList::create(strings);
         option_dropdown->set_model(model);
         option_horizontal_box.append(*option_dropdown);
-        printf("changed %s\n", (&option)->m_name.c_str());
         option_dropdown->property_selected().signal_changed().connect(
-            sigc::bind(sigc::mem_fun(*this, &RubberBandOptionsWindow::selected_item_changed), option_dropdown, &option.m_name));
-        //   drop_downs.emplace(std::pair{option,option_dropdown});
-
-        // drop_downs[option] = option_dropdown;
-        // drop_downs.push_back(option_dropdown);
+            sigc::bind(sigc::mem_fun(*this, &RubberBandOptionsWindow::selected_item_changed), option_dropdown, p_option));
     }
 
     auto option_validate_button = Gtk::Button();
     option_validate_button.set_label("Appliquer");
     option_validate_button.set_hexpand();
     m_vertical_box.append(option_validate_button);
-
-    printf("-----\n");
 }
-
-// void RubberBandOptionsWindow::selected_item_changed(const Gtk::DropDown *dropdown)
-// {
-//     printf("pas rendu\n");
-// }
-
-//         //option_dropdown.set_selected(1);
-//         //printf("option_dropdown sele %d\n",option_dropdown.get_selected());
-// /*        auto connection = option_dropdown.property_selected_item().signal_changed().connect(
-//             sigc::bind(
-//                 sigc::mem_fun(
-//                     *this,
-//                     &RubberBandOptionsWindow::selected_item_changed)));
-//
-//
-//         */
