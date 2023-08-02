@@ -3,13 +3,44 @@
 // https://stackoverflow.com/questions/15441157/gtkmm-multiple-windows-popup-window
 // https://rafaelmardojai.pages.gitlab.gnome.org/pygobject-guide/gtk4/controls/dropdown.html
 
-RubberBandOptionsWindow::RubberBandOption::RubberBandOption(std::string name, std::vector<std::string> values, std::vector<std::string> engines, std::vector<std::string> needs_restart)
+RubberBandOptionsWindow::RubberBandOptionValue::RubberBandOptionValue(std::string name, RubberBand::RubberBandStretcher::Option rubberband_option_flag)
+{
+    m_name = name;
+    m_rubberband_option_flag = rubberband_option_flag;
+}
+RubberBandOptionsWindow::RubberBandOption::RubberBandOption(std::string name, std::vector<RubberBandOptionValue> values, std::vector<std::string> engines, std::vector<std::string> needs_restart)
 {
     m_name = name;
     m_values = values;
     m_engines = engines;
     m_needs_restart = needs_restart;
 }
+void RubberBandOptionsWindow::set_from_rubberband_option_bits(RubberBand::RubberBandStretcher::Options bits)
+{
+    for (auto p_option : options)
+    {
+        // build mask from this option values 
+        RubberBand::RubberBandStretcher::Options mask = 0;
+        for (auto value : p_option->m_values)
+        {
+            mask |= value.m_rubberband_option_flag;
+        }
+        RubberBand::RubberBandStretcher::Options masked = bits & mask;
+        
+        // find and set value
+        int i = 0;
+        for (auto value : p_option->m_values)
+        {
+            if (value.m_rubberband_option_flag == masked)
+            {
+                printf("=> %s = %s\n", p_option->m_name.c_str(), p_option->m_values[i].m_name.c_str());
+                p_option->widget->set_selected(i);
+            }
+            i++;
+        }
+    }    
+}
+
 void RubberBandOptionsWindow::set_sensitive_from_revision()
 {
     //  get current_engine_revision
@@ -18,7 +49,7 @@ void RubberBandOptionsWindow::set_sensitive_from_revision()
     {
         if (p_option->m_name.compare("Engine") == 0)
         {
-            std::string current_engine = p_option->m_values[p_option->widget->get_selected()];
+            std::string current_engine = p_option->m_values[p_option->widget->get_selected()].m_name;
             current_engine_revision = (current_engine.compare("Faster") == 0) ? "R2" : "R3";
             break;
         }
@@ -42,31 +73,51 @@ void RubberBandOptionsWindow::selected_item_changed(const Gtk::DropDown *dropdow
     auto name = rubber_band_option->m_name;
     int selected = dropdown->get_selected();
     auto selected_value = rubber_band_option->m_values[selected];
-    printf("changed %s to %s\n", name.c_str(), selected_value.c_str());
-    if (rubber_band_option->m_name.compare("Engine") == 0){
+    printf("changed %s to %s\n", name.c_str(), selected_value.m_name.c_str());
+    if (rubber_band_option->m_name.compare("Engine") == 0)
+    {
         set_sensitive_from_revision();
     }
-    
 }
 RubberBandOptionsWindow::RubberBandOptionsWindow()
     : m_vertical_box(Gtk::Orientation::VERTICAL, 8)
 {
-
-    options = {
-        new RubberBandOption("Engine", {"Faster", "Finer"}, {"R2", "R3"}, {"R2", "R3"}),
-        new RubberBandOption("Transients", {"Crisp", "Mixed", "Smooth"}, {"R2"}, {}),
-        new RubberBandOption("Detector", {"Compound", "Percussive", "Soft"}, {"R2"}, {}),
-        new RubberBandOption("Phase", {"Laminar", "Independent"}, {"R2"}, {}),
-        new RubberBandOption("Threading", {"Auto", "Never", "Always"}, {"R2", "R3"}, {"R2", "R3"}), // maybe available later for R3
-        new RubberBandOption("Window", {"Standard", "Short", "Long"}, {"R2", "R3"}, {"R2", "R3"}),
-        new RubberBandOption("Smoothing", {"Off", "On"}, {"R2"}, {"R2", "R3"}),
-        new RubberBandOption("Formant", {"Shifted", "Preserved"}, {"R2", "R3"}, {}),
-        new RubberBandOption("Pitch", {"HighSpeed", "HighQuality", "HighConsistency"}, {"R2", "R3"}, {"R3"}),
-        new RubberBandOption("Channels", {"Apart", "Together"}, {"R2", "R3"}, {"R2", "R3"}),
-    };
-
-    // std::map<RubberBandOption, Gtk::DropDown> drop_downs;
-    // std::list<Gtk::DropDown&> drop_downs;
+    {
+        using RubberBand::RubberBandStretcher;
+        RubberBandOptionValue joe("Faster", RubberBandStretcher::OptionEngineFaster);
+        options = {
+            new RubberBandOption("Engine",
+                                 {RubberBandOptionValue("Faster", RubberBandStretcher::OptionEngineFaster), RubberBandOptionValue("Finer", RubberBandStretcher::OptionEngineFiner)},
+                                 {"R2", "R3"}, {"R2", "R3"}),
+            new RubberBandOption("Transients",
+                                 {RubberBandOptionValue("Crisp", RubberBandStretcher::OptionTransientsCrisp), RubberBandOptionValue("Mixed", RubberBandStretcher::OptionTransientsMixed), RubberBandOptionValue("Smooth", RubberBandStretcher::OptionTransientsSmooth)},
+                                 {"R2"}, {}),
+            new RubberBandOption("Detector",
+                                 {RubberBandOptionValue("Compound", RubberBandStretcher::OptionDetectorCompound), RubberBandOptionValue("Percussive", RubberBandStretcher::OptionDetectorPercussive), RubberBandOptionValue("Soft", RubberBandStretcher::OptionDetectorSoft)},
+                                 {"R2"}, {}),
+            new RubberBandOption("Phase",
+                                 {RubberBandOptionValue("Laminar", RubberBandStretcher::OptionPhaseLaminar), RubberBandOptionValue("Independent", RubberBandStretcher::OptionPhaseIndependent)},
+                                 {"R2"}, {}),
+            new RubberBandOption("Threading",
+                                 {RubberBandOptionValue("Auto", RubberBandStretcher::OptionThreadingAuto), RubberBandOptionValue("Never", RubberBandStretcher::OptionThreadingNever), RubberBandOptionValue("Always", RubberBandStretcher::OptionThreadingAlways)},
+                                 {"R2", "R3"}, {"R2", "R3"}), // maybe available later for R3
+            new RubberBandOption("Window",
+                                 {RubberBandOptionValue("Standard", RubberBandStretcher::OptionWindowStandard), RubberBandOptionValue("Short", RubberBandStretcher::OptionWindowShort), RubberBandOptionValue("Long", RubberBandStretcher::OptionWindowLong)},
+                                 {"R2", "R3"}, {"R2", "R3"}),
+            new RubberBandOption("Smoothing",
+                                 {RubberBandOptionValue("Off", RubberBandStretcher::OptionSmoothingOff), RubberBandOptionValue("On", RubberBandStretcher::OptionSmoothingOn)},
+                                 {"R2"}, {"R2", "R3"}),
+            new RubberBandOption("Formant",
+                                 {RubberBandOptionValue("Shifted", RubberBandStretcher::OptionFormantShifted), RubberBandOptionValue("Preserved", RubberBandStretcher::OptionFormantPreserved)},
+                                 {"R2", "R3"}, {}),
+            new RubberBandOption("Pitch",
+                                 {RubberBandOptionValue("HighSpeed", RubberBandStretcher::OptionPitchHighSpeed), RubberBandOptionValue("HighQuality", RubberBandStretcher::OptionPitchHighQuality), RubberBandOptionValue("HighConsistency", RubberBandStretcher::OptionPitchHighConsistency)},
+                                 {"R2", "R3"}, {"R3"}),
+            new RubberBandOption("Channels",
+                                 {RubberBandOptionValue("Apart", RubberBandStretcher::OptionChannelsApart), RubberBandOptionValue("Together", RubberBandStretcher::OptionChannelsTogether)},
+                                 {"R2", "R3"}, {"R2", "R3"}),
+        };
+    }
 
     this->set_default_size(220, 100);
     this->set_title("Stretching");
@@ -101,7 +152,7 @@ RubberBandOptionsWindow::RubberBandOptionsWindow()
         std::vector<Glib::ustring> strings;
         for (auto value : p_option->m_values)
         {
-            strings.push_back(value);
+            strings.push_back(value.m_name);
         }
         auto model = Gtk::StringList::create(strings);
         option_dropdown->set_model(model);
@@ -111,7 +162,8 @@ RubberBandOptionsWindow::RubberBandOptionsWindow()
         option_dropdown->property_selected().signal_changed().connect(
             sigc::bind(sigc::mem_fun(*this, &RubberBandOptionsWindow::selected_item_changed), option_dropdown, p_option));
     }
-    
+
+    set_from_rubberband_option_bits(RubberBand::RubberBandStretcher::OptionEngineFiner | RubberBand::RubberBandStretcher::OptionPitchHighConsistency | RubberBand::RubberBandStretcher::OptionTransientsMixed);
     set_sensitive_from_revision();
 
     auto option_validate_button = Gtk::Button();
