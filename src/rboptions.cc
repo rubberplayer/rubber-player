@@ -19,28 +19,36 @@ void RubberBandOptionsWindow::set_from_rubberband_option_bits(RubberBand::Rubber
 {
     for (auto p_option : options)
     {
-        // build mask from this option values 
+        // build mask from this option values
         RubberBand::RubberBandStretcher::Options mask = 0;
         for (auto value : p_option->m_values)
         {
             mask |= value.m_rubberband_option_flag;
         }
         RubberBand::RubberBandStretcher::Options masked = bits & mask;
-        
+
         // find and set value
         int i = 0;
         for (auto value : p_option->m_values)
         {
             if (value.m_rubberband_option_flag == masked)
             {
-                printf("=> %s = %s\n", p_option->m_name.c_str(), p_option->m_values[i].m_name.c_str());
                 p_option->widget->set_selected(i);
             }
             i++;
         }
-    }    
+    }
 }
-
+RubberBand::RubberBandStretcher::Options RubberBandOptionsWindow::get_rubberband_option_bits()
+{
+    RubberBand::RubberBandStretcher::Options bits = 0;
+    for (auto p_option : options)
+    {
+        int selected = p_option->widget->get_selected();
+        bits |= p_option->m_values[selected].m_rubberband_option_flag;
+    }
+    return bits;
+}
 void RubberBandOptionsWindow::set_sensitive_from_revision()
 {
     //  get current_engine_revision
@@ -119,9 +127,11 @@ RubberBandOptionsWindow::RubberBandOptionsWindow()
         };
     }
 
-    this->set_default_size(220, 100);
+    this->set_default_size(220, 156);
     this->set_title("Stretching");
     this->set_resizable(false);
+    this->set_titlebar(m_HeaderBar);
+
     set_child(m_vertical_box);
     m_vertical_box.set_margin_start(10);
     m_vertical_box.set_margin_end(10);
@@ -165,7 +175,6 @@ RubberBandOptionsWindow::RubberBandOptionsWindow()
 
     set_from_rubberband_option_bits(RubberBand::RubberBandStretcher::OptionEngineFiner | RubberBand::RubberBandStretcher::OptionPitchHighConsistency | RubberBand::RubberBandStretcher::OptionTransientsMixed);
     set_sensitive_from_revision();
-
     auto option_validate_button = Gtk::Button();
     option_validate_button.set_label("Appliquer");
     option_validate_button.set_hexpand();

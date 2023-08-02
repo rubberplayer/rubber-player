@@ -4,6 +4,7 @@
 class RubberBandOptionsWindow : public Gtk::Window
 {
 protected:
+    Gtk::HeaderBar m_HeaderBar;
     Gtk::Box m_vertical_box;
     class RubberBandOptionValue
     {
@@ -29,4 +30,5 @@ public:
     void selected_item_changed(const Gtk::DropDown *dropdown, RubberBandOption *rubber_band_option);
     void set_sensitive_from_revision();
     void set_from_rubberband_option_bits(RubberBand::RubberBandStretcher::Options bits);
+    RubberBand::RubberBandStretcher::Options get_rubberband_option_bits();
 };

@@ -63,11 +63,12 @@ class MainWindow : public Gtk::Window
 public:
   MainWindow();
 
-  Waveform m_Waveform;
+  Gtk::HeaderBar m_HeaderBar;
+  Gtk::MenuButton m_MenuButton;
 
   Gtk::Box m_VBox;
-
   Gtk::Frame m_Frame_Waveform;
+  Waveform m_Waveform;
 
   Gtk::ToggleButton m_Button_play;
   void on_button_play_clicked();
@@ -144,7 +145,18 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
 {
   set_title(APPLICATION_NAME);
   set_default_size(600, 250);
+  set_titlebar(m_HeaderBar);
 
+  m_MenuButton.set_icon_name("open-menu-symbolic");
+  m_HeaderBar.pack_end(m_MenuButton);
+
+ /*
+    auto icon = Gio::ThemedIcon("open-menu-symbolic");
+    auto image = Gtk::Image::new_from_gicon(icon, Gtk::IconSize.BUTTON);
+    button_header_menu.get_child().destroy()
+    button_header_menu.add(image)
+    button_header_menu.show_all()
+*/
   m_Waveform.set_hack_sound_start_sound_end_sound_position(&player.m_sound_start, &player.m_sound_end, &player.m_sound_position);
 
   // vertical box container
