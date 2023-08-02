@@ -38,6 +38,8 @@ Libsndfile is able to open lots of formats (wav, aif, mp3, ogg, flac) but not ev
 
     meson setup builddir
     meson compile -C builddir    
+    # alternatively:
+    ninja -C builddir
     ./builddir/rubber_player
 
 ## Integrated libraries
