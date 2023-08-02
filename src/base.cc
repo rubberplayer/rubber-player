@@ -216,8 +216,7 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
 
   const GType ustring_type = Glib::Value<Glib::ustring>::value_type();
   auto target = Gtk::DropTarget::create(ustring_type, Gdk::DragAction::COPY);
-  target->signal_drop().connect(
-      sigc::mem_fun(*this, &MainWindow::on_button_drop_drop_data), false);
+  target->signal_drop().connect(sigc::mem_fun(*this, &MainWindow::on_button_drop_drop_data), false);
   add_controller(target);
 
   rubberband_options_window = new RubberBandOptionsWindow;
