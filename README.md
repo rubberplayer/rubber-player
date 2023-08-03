@@ -32,7 +32,7 @@ Libsndfile is able to open lots of formats (wav, aif, mp3, ogg, flac) but not ev
 ### using a direct command
 
     `./build.sh`
-    ./rubber_player
+    ./rubber-player
 
 ### using meson
 
@@ -40,7 +40,7 @@ Libsndfile is able to open lots of formats (wav, aif, mp3, ogg, flac) but not ev
     meson compile -C builddir    
     # alternatively:
     ninja -C builddir
-    ./builddir/rubber_player
+    ./builddir/rubber-player
 
 ## Integrated libraries
 

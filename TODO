@@ -7,6 +7,7 @@
 - fix noop  pa_write_error / error while writing to pa sink (260 samples) ? -487077284 : (null)
 - maybe update to ^4.10
 - rubberband options
+- move playhead without changing selection
 
 OptionProcessOffline 	
 OptionProcessRealTime 	

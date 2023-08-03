@@ -93,7 +93,7 @@ public:
     void on_pitch_value_changed();
     Gtk::Entry m_Entry_pitch;
   */
-
+  std::shared_ptr<Gtk::RecentManager> recent_manager;
   Player player;
   Sound sound;
 
@@ -147,16 +147,28 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
   set_default_size(600, 250);
   set_titlebar(m_HeaderBar);
 
+  //.local/share/recently-used.xbel
+  recent_manager = Gtk::RecentManager::get_default();
+  for (auto recent_item_info : recent_manager->get_items())
+  {
+    std::cout << recent_item_info->get_uri() << std::endl;
+
+    for (auto application : recent_item_info->get_applications())
+    {
+      std::cout << application << std::endl;
+    }
+  }
+
   m_MenuButton.set_icon_name("open-menu-symbolic");
   m_HeaderBar.pack_end(m_MenuButton);
 
- /*
-    auto icon = Gio::ThemedIcon("open-menu-symbolic");
-    auto image = Gtk::Image::new_from_gicon(icon, Gtk::IconSize.BUTTON);
-    button_header_menu.get_child().destroy()
-    button_header_menu.add(image)
-    button_header_menu.show_all()
-*/
+  /*
+     auto icon = Gio::ThemedIcon("open-menu-symbolic");
+     auto image = Gtk::Image::new_from_gicon(icon, Gtk::IconSize.BUTTON);
+     button_header_menu.get_child().destroy()
+     button_header_menu.add(image)
+     button_header_menu.show_all()
+ */
   m_Waveform.set_hack_sound_start_sound_end_sound_position(&player.m_sound_start, &player.m_sound_end, &player.m_sound_position);
 
   // vertical box container
@@ -212,7 +224,9 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
   m_Button_play.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_play_clicked));
 
   // open file button
-  m_VBox.append(m_Button_open);
+  // m_VBox.append(m_Button_open);
+  m_HeaderBar.pack_start(m_Button_open);
+
   m_Button_open.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_open_clicked));
   // m_Button_load.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_load_clicked));
 

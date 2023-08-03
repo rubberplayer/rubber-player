@@ -4,4 +4,4 @@ g++  -std=c++17 \
     `pkg-config --cflags --libs libpulse-simple` \
     `pkg-config --cflags --libs sndfile` \
     `pkg-config --cflags --libs rubberband` \
-    -o rubber_player
+    -o rubber-player

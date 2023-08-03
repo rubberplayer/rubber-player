@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Categories=Audio
+Name=Rubber Player
+Comment=Time-stretching audio Player for music rehearsal
+TryExec=rubber_player
+Exec=rubber_player %F
+Icon=rubber_player
+MimeType=image/x-foo;
+# Actions=Gallery;Create;
