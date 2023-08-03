@@ -4,8 +4,10 @@ Type=Application
 Categories=Audio
 Name=Rubber Player
 Comment=Time-stretching audio Player for music rehearsal
-TryExec=rubber_player
-Exec=rubber_player %F
-Icon=rubber_player
-MimeType=image/x-foo;
+TryExec=rubber-player
+Exec=rubber-player %F
+Icon=rubber-player
+MimeType=audio/x-wav;audio/x-aiff;audio/basic;audio/voc;audio/x-voc;audio/ogg;audio/mp3;audio/aac;audio/8svx;audio/x-8svx;audio/16sv;audio/x-16sv;audio/mpeg
+
 # Actions=Gallery;Create;
+
