@@ -60,3 +60,6 @@ float *Sound::get_sound_data()
 {
   return ptr;
 }
+double Sound::get_second_at_frame(long frame){
+  return ((double)frame) / sfinfo.samplerate;
+}

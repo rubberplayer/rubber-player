@@ -1,3 +1,5 @@
+#ifndef WAVEFORM_H
+#define WAVEFORM_H
 #include <gtkmm.h>
 #include "./sound.h"
 
@@ -75,7 +77,9 @@ public:
     // bool has_selection;
     long selection_start;
     long selection_end;
-    void set_selection_bounds(int _selection_start, int _selection_end);
+    void set_selection_bounds(int _selection_start, int _selection_end);    
+    long get_selection_start_frame();
+    long get_selection_end_frame();
     long get_frame_number_at(double offset_x);
     double get_pixel_at(long frame);
 
@@ -103,3 +107,4 @@ public:
     //
     bool on_vbl_timeout();
 };
+#endif

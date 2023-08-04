@@ -10,6 +10,8 @@
 - ? recent files via splitbutton (libadw)
 - use actions for everything + shortcuts
 - warnings : "will be initialized after"
+- ? icons : zoom-fit-best",    "zoom-in",    "zoom-original",    "zoom-out",
+
 
 OptionProcessOffline 	
 OptionProcessRealTime 	

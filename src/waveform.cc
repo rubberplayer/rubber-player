@@ -93,7 +93,7 @@ std::string Waveform::regular_timecode_display(double seconds) const
         std::string unpadded = std::to_string(d_seconds);
         s += std::string(2 - unpadded.length(), '0') + unpadded;
     }
-    s += ":";
+    s += ".";
     {
         std::string unpadded = std::to_string(d_milliseconds);
         s += std::string(4 - unpadded.length(), '0') + unpadded;
@@ -378,7 +378,7 @@ void Waveform::draw_scale()
     if ((false) && (caption_scale_unit != NULL))
     {
         // printf("caption_scale_unit::::: %s\n", caption_scale_unit->to_string().c_str());
-        double unit_length_s = caption_scale_unit->m_period_s;                   // 0.1;
+        double unit_length_s = caption_scale_unit->m_period_s; // 0.1;
         //        double unit_display_height_px = caption_scale_unit->m_display_height_px; // scale_unit.m_period_s 20;
 
         double left_s = std::floor(visible_start_s / unit_length_s) * unit_length_s;
@@ -495,30 +495,29 @@ void Waveform::draw_sound()
     cr->set_source_rgb(0, 0, 0);
     cr->paint();
 
-    
     auto sw = m_waveform_surface->get_width();
     auto sh = m_waveform_surface->get_height();
 
     cr->set_source_rgb(1.0, 0.5, 0.25);
-    
+
     double visible_frames = (double)(visible_end - visible_start);
     float *sound_data = m_sound->get_sound_data();
     int channels = m_sound->get_channels();
 
-    bool separated_channels = true; 
-    float channel_height = (separated_channels)?(sh/(float)channels):(sh);
+    bool separated_channels = true;
+    float channel_height = (separated_channels) ? (sh / (float)channels) : (sh);
 
     // do not analyse every sample if there are too many
-    double max_samples_analyzed = 1500000;   
+    double max_samples_analyzed = 1500000;
     double max_samples_analyzed_by_channel_frame = max_samples_analyzed / sw / channels;
-    double no_pass_samples_analyzed_by_channel_frame = visible_frames / sw;   
-    int analyze_step = std::max(1.0,std::ceil(no_pass_samples_analyzed_by_channel_frame / max_samples_analyzed_by_channel_frame));
+    double no_pass_samples_analyzed_by_channel_frame = visible_frames / sw;
+    int analyze_step = std::max(1.0, std::ceil(no_pass_samples_analyzed_by_channel_frame / max_samples_analyzed_by_channel_frame));
 
     for (int channel = 0; channel < channels; channel++)
     {
-        int channel_offset = separated_channels?(channel * channel_height):0;
-        cr->set_source_rgb(1.0, 0.5, 0.25);       
-        
+        int channel_offset = separated_channels ? (channel * channel_height) : 0;
+        cr->set_source_rgb(1.0, 0.5, 0.25);
+
         for (int i = 0; i < sw; i++)
         {
             long p0 = visible_start + (long)(((double)i / (double)sw) * visible_frames);
@@ -533,7 +532,7 @@ void Waveform::draw_sound()
             }
             float max = -1;
             float min = 1;
-            for (int j = p0; j <= p1; j+=analyze_step)
+            for (int j = p0; j <= p1; j += analyze_step)
             {
                 float value = sound_data[j * channels + channel];
                 max = std::max(max, value);
@@ -548,7 +547,7 @@ void Waveform::draw_sound()
             cr->fill();
         }
     }
-    //printf("%ld samples abalyzed\n",n_samples_analyzed);
+    // printf("%ld samples abalyzed\n",n_samples_analyzed);
 }
 
 Waveform::SelectionHotHandle Waveform::closest_hot_handle(double x)
@@ -741,4 +740,12 @@ void Waveform::set_hack_sound_start_sound_end_sound_position(std::atomic<long> *
     hack_sound_start = s;
     hack_sound_end = e;
     hack_sound_position = p;
+}
+long Waveform::get_selection_start_frame()
+{
+    return selection_start;
+}
+long Waveform::get_selection_end_frame()
+{
+    return selection_end;
 }

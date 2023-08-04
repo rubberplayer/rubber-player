@@ -20,6 +20,6 @@ public:
   int get_samplerate();
   int get_channels();
   float *get_sound_data();  
-
+  double get_second_at_frame(long frame);
 };
 #endif
