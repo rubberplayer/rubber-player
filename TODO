@@ -10,4 +10,5 @@
 - ? recent files via splitbutton (libadw)
 - use actions for everything + shortcuts
 - warnings : "will be initialized after"
-- ? icons : zoom-fit-best",    "zoom-in",    "zoom-original",    "zoom-out",
+- ? icons : zoom-fit-best",    "zoom-in",    "zoom-original",   "zoom-out",
+- selection db : delete / code duplication

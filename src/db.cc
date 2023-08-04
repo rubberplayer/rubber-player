@@ -59,6 +59,10 @@ void SelectionDB::create_tables()
         fprintf(stdout, "Table created successfully\n");
     }
 }
+void SelectionDB::start(){
+    open_database();
+    create_tables();
+}
 bool SelectionDB::insert_selection(std::string path, long frame_start, long frame_end, std::string label)
 {
     if (!opened)

@@ -10,6 +10,7 @@
 #include "./waveform.h"
 #include "./rboptions.h"
 #include "./selections.cc"
+#include "./db.h"
 
 #define USE_HEADERBAR_TITLEBAR false
 
@@ -67,6 +68,7 @@ class MainWindow : public Gtk::Window
 {
 public:
   MainWindow();
+  SelectionDB *m_p_selection_db;
 
   // headerbar
   Gtk::HeaderBar m_HeaderBar;
@@ -258,6 +260,9 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
 {
   set_title(APPLICATION_NAME);
   set_default_size(800, 400);
+
+  m_p_selection_db = new SelectionDB();
+  m_p_selection_db->start();
 
   set_child(m_VBox0);
 
@@ -473,6 +478,7 @@ void MainWindow::on_button_selections_list_add()
   auto duration_time_code = m_Waveform.regular_timecode_display(selection_duration_seconds);
 
   m_SelectionsListBox.add_context(left_time_code, right_time_code, duration_time_code, selection_start_frame, selection_end_frame);
+  m_p_selection_db->insert_selection(sound.path, selection_start_frame, selection_end_frame, "a comment");
 }
 
 void MainWindow::on_button_play_clicked()
@@ -501,6 +507,33 @@ void MainWindow::load_sound(std::string path)
   {
     m_Waveform.set_sound(&sound);
     player.set_sound(&sound);
+
+    auto rows = m_p_selection_db->load_sound_selections(path);
+    for (auto row : (*rows))
+    {
+      std::string path = std::get<0>(row);
+      long selection_start_frame = std::get<1>(row);
+      long selection_end_frame = std::get<2>(row);
+      std::string label = std::get<3>(row);
+      std::cout << path << " "
+                << selection_start_frame << " "
+                << selection_end_frame << " "
+                << label << " "
+                << std::endl;
+
+      long selection_left_frame = std::min(selection_start_frame, selection_end_frame);
+      long selection_right_frame = std::max(selection_start_frame, selection_end_frame);
+
+      double selection_left_seconds = sound.get_second_at_frame(selection_left_frame);
+      double selection_right_seconds = sound.get_second_at_frame(selection_right_frame);
+      double selection_duration_seconds = sound.get_second_at_frame(selection_right_frame - selection_left_frame);
+
+      auto left_time_code = m_Waveform.regular_timecode_display(selection_left_seconds);
+      auto right_time_code = m_Waveform.regular_timecode_display(selection_right_seconds);
+      auto duration_time_code = m_Waveform.regular_timecode_display(selection_duration_seconds);
+
+      m_SelectionsListBox.add_context(left_time_code, right_time_code, duration_time_code, selection_start_frame, selection_end_frame);
+    }
   }
   else
   {
@@ -596,13 +629,10 @@ void json_test()
   }
 }
 
-#include "./db.h"
-
 void sqlite_test()
 {
   SelectionDB *selectionDb = new SelectionDB();
-  selectionDb->open_database();
-  selectionDb->create_tables();
+  selectionDb->start();
   bool done = selectionDb->insert_selection("/path/to/sound3.wav", 26666, 29999, "xa comment");
   std::cout << "done" << done << std::endl;
   auto rows = selectionDb->load_sound_selections("/path/to/sound3.wav");
@@ -614,16 +644,16 @@ void sqlite_test()
     long frame_end = std::get<2>(row);
     std::string label = std::get<3>(row);
     std::cout << path << " "
-              << frame_start << " " 
-              << frame_end << " " 
-              << label << " " 
+              << frame_start << " "
+              << frame_end << " "
+              << label << " "
               << std::endl;
   }
 }
 int main(int argc, char *argv[])
 {
   // json_test();
-  sqlite_test();
+  //  sqlite_test();
   auto app = Gtk::Application::create(); //"org.gtkmm.examples.base");
   return app->make_window_and_run<MainWindow>(argc, argv);
 }
