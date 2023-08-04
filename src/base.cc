@@ -10,6 +10,9 @@
 #include "./waveform.h"
 #include "./rboptions.h"
 
+#include <giomm/menu.h>
+
+#define USE_HEADERBAR_TITLEBAR false
 //////////////////////////////////
 ///
 /// https://docs.gtk.org/gtk4/class.FileDialog.html since 4.10
@@ -63,9 +66,15 @@ class MainWindow : public Gtk::Window
 public:
   MainWindow();
 
+  // headerbar
   Gtk::HeaderBar m_HeaderBar;
   Gtk::MenuButton m_MenuButton;
+  Gtk::Button m_Button_preferences;
 
+  void create_actions();
+  std::shared_ptr<Gio::Menu> create_main_menu();
+
+  Gtk::Box m_VBox0;
   Gtk::Box m_VBox;
   Gtk::Frame m_Frame_Waveform;
   Waveform m_Waveform;
@@ -75,6 +84,7 @@ public:
 
   Gtk::Button m_Button_open;
   void on_button_open_clicked();
+  // Gtk::MenuButton m_PopoverMenuBar_open_recent;
 
   Gtk::Box m_HBox_time_ratio;
   TimeRatioRange m_time_ratio_range;
@@ -93,7 +103,7 @@ public:
     void on_pitch_value_changed();
     Gtk::Entry m_Entry_pitch;
   */
-  std::shared_ptr<Gtk::RecentManager> recent_manager;
+  //std::shared_ptr<Gtk::RecentManager> recent_manager;
   Player player;
   Sound sound;
 
@@ -128,6 +138,10 @@ public:
 
   void show_message_dialog(std::string m1, std::string m2);
   RubberBandOptionsWindow *rubberband_options_window;
+
+  void on_preferences();
+  void on_file_quit();
+  void on_about();
 };
 /*
 void MainWindow::set_selection_bounds(long selection_start, long selection_end)
@@ -136,32 +150,147 @@ void MainWindow::set_selection_bounds(long selection_start, long selection_end)
   m_selection_end = selection_end;
 }
 */
+void MainWindow::on_preferences()
+{
+  std::cout << "preferences..." << std::endl;
+  rubberband_options_window = new RubberBandOptionsWindow;
+  rubberband_options_window->show();
+}
+void MainWindow::on_file_quit()
+{
+  std::cout << "file quit..." << std::endl;
+}
+void MainWindow::on_about()
+{
+  std::cout << "about..." << std::endl;
+}
+void MainWindow::create_actions()
+{
+  auto refActions = Gio::SimpleActionGroup::create();
+  refActions->add_action("preferences", sigc::mem_fun(*this, &MainWindow::on_preferences));
+  refActions->add_action("about", sigc::mem_fun(*this, &MainWindow::on_about));
+  refActions->add_action("quit", sigc::mem_fun(*this, &MainWindow::on_file_quit));
+  insert_action_group("win", refActions);
+}
+std::shared_ptr<Gio::Menu> MainWindow::create_main_menu()
+{
 
-MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
+  // Create the menu:
+  auto win_menu = Gio::Menu::create();
+
+  // File menu:
+  // auto menu_file = Gio::Menu::create();
+  // win_menu->append_submenu("_File", menu_file);
+  // auto file_section1 = Gio::Menu::create();
+  // file_section1->append("_New", "example.new");
+  // file_section1->append("_Open", "example.open");
+  // file_section1->append("_Save", "example.save");
+  // file_section1->append("Save _As...", "example.saveas");
+  // menu_file->append_section(file_section1);
+  // auto file_section2 = Gio::Menu::create();
+  // file_section2->append("_Quit", "example.quit");
+  // menu_file->append_section(file_section2);
+
+  // Preferences menu:
+  auto menu_pref = Gio::Menu::create();
+  // win_menu->append_submenu("_Preferences", menu_pref);
+  win_menu->append("_Preferences", "win.preferences");
+
+  /*
+    // Color submenu:
+    auto submenu_color = Gio::Menu::create();
+    submenu_color->append("_Red", "example.red");
+    submenu_color->append("_Green", "example.green");
+    submenu_color->append("_Blue", "example.blue");
+    menu_pref->append_submenu("_Color", submenu_color);
+
+    // Shape submenu:
+    auto submenu_shape = Gio::Menu::create();
+    submenu_shape->append("_Square", "example.square");
+    submenu_shape->append("_Rectangle", "example.rectangle");
+    submenu_shape->append("_Circle", "example.circle");
+    menu_pref->append_submenu("_Shape", submenu_shape);
+  */
+  // Help menu:
+  // auto menu_help = Gio::Menu::create();
+  win_menu->append("_About", "win.about");
+
+  win_menu->append("_Quit", "win.quit");
+
+  // win_menu->append_submenu("_Help", menu_help);
+
+  // Add the menu to the menubar.
+  // m_Menubar.set_menu_model(win_menu);
+  // m_HeaderBar.pack_end(m_Menubar);
+  //
+  return win_menu;
+}
+
+MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
+                           m_VBox(Gtk::Orientation::VERTICAL, 8),
                            m_HBox_time_ratio(Gtk::Orientation::HORIZONTAL, 8),
                            m_Button_play("play", true),
                            m_Button_open("open", true)
+
 /*m_Button_load("play", true)*/
 {
   set_title(APPLICATION_NAME);
   set_default_size(600, 250);
-  set_titlebar(m_HeaderBar);
 
-  //.local/share/recently-used.xbel
-  recent_manager = Gtk::RecentManager::get_default();
-  for (auto recent_item_info : recent_manager->get_items())
+  create_actions();
+  auto main_menu = create_main_menu();
+
+  // open file button
+  m_HeaderBar.pack_start(m_Button_open);
+  
+  // m_HeaderBar.pack_start(m_PopoverMenuBar_open_recent);
+  // m_PopoverMenuBar_open_recent.set_icon_name("open-menu-symbolic");
+  // recent_manager = Gtk::RecentManager::get_default();
+  // {
+  //   auto recent_menu = Gio::Menu::create();
+  //   m_PopoverMenuBar_open_recent.set_menu_model(recent_menu);
+  //   for (auto recent_item_info : recent_manager->get_items())
+  //   {
+  //     std::cout << recent_item_info->get_uri() << std::endl;
+  //     recent_menu->append(recent_item_info->get_uri());
+  //     for (auto application : recent_item_info->get_applications())
+  //     {
+  //       std::cout << application << std::endl;
+  //     }
+  //   }
+// 
+  // }
+  // menu button
+  m_HeaderBar.pack_end(m_MenuButton);
+  m_MenuButton.set_icon_name("open-menu-symbolic");
+  m_MenuButton.set_menu_model(main_menu);
+
+  // preferences button
+  m_HeaderBar.pack_end(m_Button_preferences);
+  m_Button_preferences.set_icon_name("gtk-preferences");
+  m_Button_preferences.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_preferences));
+
+  if (USE_HEADERBAR_TITLEBAR)
   {
-    std::cout << recent_item_info->get_uri() << std::endl;
-
-    for (auto application : recent_item_info->get_applications())
-    {
-      std::cout << application << std::endl;
-    }
+    set_titlebar(m_HeaderBar);
+    // menu button
+  }
+  else
+  {
+    // m_VBox0.append(m_HeaderBar);
+    m_VBox0.append(m_HeaderBar);
+    m_HeaderBar.set_show_title_buttons(false);
+    Gtk::Box empty_box;
+    m_HeaderBar.set_title_widget(empty_box);
+    // Gtk::Widget* title_widget = m_HeaderBar.get_title_widget();
+    // m_HeaderBar.remove(title_widget);
   }
 
-  m_MenuButton.set_icon_name("open-menu-symbolic");
-  m_HeaderBar.pack_end(m_MenuButton);
+  //.local/share/recently-used.xbel
 
+  // https://developer.gnome.org/hig/patterns/controls/menus.html
+
+  // https://docs.gtk.org/gtk4/class.PopoverMenu.html
   /*
      auto icon = Gio::ThemedIcon("open-menu-symbolic");
      auto image = Gtk::Image::new_from_gicon(icon, Gtk::IconSize.BUTTON);
@@ -171,9 +300,11 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
  */
   m_Waveform.set_hack_sound_start_sound_end_sound_position(&player.m_sound_start, &player.m_sound_end, &player.m_sound_position);
 
+  set_child(m_VBox0);
+  m_VBox0.append(m_VBox);
+
   // vertical box container
   m_VBox.set_margin(16);
-  set_child(m_VBox);
 
   // waveform frame and Waveform (DrawingArea)
   m_VBox.append(m_Frame_Waveform);
@@ -223,10 +354,6 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
   m_VBox.append(m_Button_play);
   m_Button_play.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_play_clicked));
 
-  // open file button
-  // m_VBox.append(m_Button_open);
-  m_HeaderBar.pack_start(m_Button_open);
-
   m_Button_open.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_open_clicked));
   // m_Button_load.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_load_clicked));
 
@@ -244,9 +371,6 @@ MainWindow::MainWindow() : m_VBox(Gtk::Orientation::VERTICAL, 8),
   auto target = Gtk::DropTarget::create(ustring_type, Gdk::DragAction::COPY);
   target->signal_drop().connect(sigc::mem_fun(*this, &MainWindow::on_button_drop_drop_data), false);
   add_controller(target);
-
-  rubberband_options_window = new RubberBandOptionsWindow;
-  rubberband_options_window->show();
 
   // auto gtk_builder = new Gtk::Builder();
   // std::string ui_file_path("/home/vivien/src/test-cambalache/test cambalache.ui");

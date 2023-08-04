@@ -8,6 +8,8 @@
 - maybe update to ^4.10
 - rubberband options
 - move playhead without changing selection
+- ? recent files via splitbutton (libadw)
+- use actions for everything + shortcuts
 
 OptionProcessOffline 	
 OptionProcessRealTime 	
