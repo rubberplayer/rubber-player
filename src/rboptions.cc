@@ -161,8 +161,8 @@ RubberBandOptionsWindow::RubberBandOptionsWindow()
 
         // model + values
         std::vector<Glib::ustring> strings;
-        for (auto value : p_option->m_values)
-        {
+        for (auto value : p_option->m_values)        
+        {            
             strings.push_back(value.m_name);
         }
         auto model = Gtk::StringList::create(strings);
@@ -176,8 +176,19 @@ RubberBandOptionsWindow::RubberBandOptionsWindow()
 
     set_from_rubberband_option_bits(RubberBand::RubberBandStretcher::OptionEngineFiner | RubberBand::RubberBandStretcher::OptionPitchHighConsistency | RubberBand::RubberBandStretcher::OptionTransientsMixed);
     set_sensitive_from_revision();
-    auto option_validate_button = Gtk::Button();
-    option_validate_button.set_label("Appliquer");
-    option_validate_button.set_hexpand();
-    m_vertical_box.append(option_validate_button);
+    
+    m_Button_apply.set_label("Appliquer");
+    m_Button_apply.set_hexpand();    
+    m_vertical_box.append(m_Button_apply);
+    m_Button_apply.signal_clicked().connect(sigc::mem_fun(*this, &RubberBandOptionsWindow::on_apply));
+    
+}
+void RubberBandOptionsWindow::on_apply(){
+
+    // setTransientsOption()
+    // setDetectorOption()
+    // setPhaseOption()
+    // setFormantOption()
+    // setPitchOption()
+
 }

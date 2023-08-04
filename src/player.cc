@@ -63,7 +63,7 @@ void Player::initialize_RubberBand(int channels, int samplerate)
 
     rubberBandStretcher = new RubberBand::RubberBandStretcher(samplerate, channels, rubberband_options);
     printf("RubberBand engine version : %d\n", rubberBandStretcher->getEngineVersion());
-    printf("RubberBand channel count : %d\n", rubberBandStretcher->getChannelCount());
+    printf("RubberBand channel count : %ld\n", rubberBandStretcher->getChannelCount());
 }
 void Player::play_always()
 {
@@ -111,12 +111,12 @@ void Player::play_always()
                 auto begin = date_of_first_sample_sent_to_sink;
                 auto end = std::chrono::high_resolution_clock::now();
                 long previous_play_session_duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
-                printf("[player] just stopped, with %d samples sent\n", samples_sent_to_sink);
+                printf("[player] just stopped, with %ld samples sent\n", samples_sent_to_sink);
                 long samples_sent_to_sink_ms = (1000 * samples_sent_to_sink) / ((long)(m_sound->sfinfo.samplerate));
-                printf("[player]                    %d ms of samples sent\n", samples_sent_to_sink_ms);
-                printf("[player]      while %d ms of time passed\n", previous_play_session_duration_ms);
+                printf("[player]                    %ld ms of samples sent\n", samples_sent_to_sink_ms);
+                printf("[player]      while %ld ms of time passed\n", previous_play_session_duration_ms);
                 long samples_remaining_ms = samples_sent_to_sink_ms - previous_play_session_duration_ms;
-                printf("[player] so %d ms of time are still played by sink\n", samples_remaining_ms);
+                printf("[player] so %ld ms of time are still played by sink\n", samples_remaining_ms);
                 samples_sent_to_sink = 0;
                 previous_play_state = l_play_started;
                 // i don't know why
@@ -139,7 +139,7 @@ void Player::play_always()
         {
             if (previous_play_state != l_play_started)
             {
-                printf("[player] just started, with %d samples sent \n", samples_sent_to_sink);
+                printf("[player] just started, with %ld samples sent \n", samples_sent_to_sink);
             }
             previous_play_state = l_play_started;
         }
@@ -291,6 +291,11 @@ void Player::stop_playing_thread()
     m_terminate_the_play_thread.store(false);
     m_play_started.store(false);
 }
+void Player::start_playing_thread()
+{
+    m_the_play_thread = std::thread([this]
+                                    { play_always(); });
+}
 void Player::set_sound(Sound *sound)
 {
     stop_playing_thread();
@@ -302,8 +307,7 @@ void Player::set_sound(Sound *sound)
     m_sound_position.store(0);
 
     // start the thread
-    m_the_play_thread = std::thread([this]
-                                    { play_always(); });
+    start_playing_thread();
 }
 void Player::set_pitch_scale(double pitch_scale)
 {

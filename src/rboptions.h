@@ -6,6 +6,9 @@ class RubberBandOptionsWindow : public Gtk::Window
 protected:
     Gtk::HeaderBar m_HeaderBar;
     Gtk::Box m_vertical_box;
+    Gtk::Button m_Button_apply;
+    void on_apply();
+
     class RubberBandOptionValue
     {
     public:
