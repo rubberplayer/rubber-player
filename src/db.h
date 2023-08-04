@@ -1,6 +1,7 @@
 #include <sqlite3.h>
 #include <vector>
 #include <string>
+#include <tuple>
 
 class SelectionDB
 {
@@ -16,7 +17,7 @@ public:
     void open_database();
     void create_tables();
     bool insert_selection(std::string path,long frame_start, long frame_end, std::string label );
-    void load_selections();
+    std::vector< std::tuple<std::string,long,long,std::string>> * load_sound_selections(std::string path);
     void close_database();
 };
 

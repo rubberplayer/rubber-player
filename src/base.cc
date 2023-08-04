@@ -589,7 +589,7 @@ void json_test()
 
   const Json::Value selections = people["selections"];
   std::cout << "size:" << selections.size() << std::endl;
-  for (int index = 0; index < selections.size(); ++index)
+  for (unsigned int index = 0; index < selections.size(); ++index)
   {
     std::cout << selections[index]["frame_start"].asLargestInt() << std::endl;
     std::cout << selections[index]["frame_end"].asLargestInt() << std::endl;
@@ -603,9 +603,22 @@ void sqlite_test()
   SelectionDB *selectionDb = new SelectionDB();
   selectionDb->open_database();
   selectionDb->create_tables();
-  bool done = selectionDb->insert_selection("/path/to/sound3.wav",16666,19999,"a comment");
+  bool done = selectionDb->insert_selection("/path/to/sound3.wav", 26666, 29999, "xa comment");
   std::cout << "done" << done << std::endl;
-  selectionDb->load_selections();
+  auto rows = selectionDb->load_sound_selections("/path/to/sound3.wav");
+
+  for (auto row : (*rows))
+  {
+    std::string path = std::get<0>(row);
+    long frame_start = std::get<1>(row);
+    long frame_end = std::get<2>(row);
+    std::string label = std::get<3>(row);
+    std::cout << path << " "
+              << frame_start << " " 
+              << frame_end << " " 
+              << label << " " 
+              << std::endl;
+  }
 }
 int main(int argc, char *argv[])
 {
