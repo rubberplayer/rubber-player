@@ -19,8 +19,8 @@ void Sound::load(std::string ppath)
   }
   else
   {
-    printf("[libsndfile] file opened ok %s : %d\n", path.c_str(), sndfile);
-    printf("[libsndfile] SF_INFO :\n-frames: %d\n-samplerate %d\n-channels %d\n-format %b\n-sections %d\n-seekable %d\n",
+    printf("[libsndfile] file opened ok %s : %p\n", path.c_str(), sndfile);
+    printf("[libsndfile] SF_INFO :\n-frames: %ld\n-samplerate %d\n-channels %d\n-format %b\n-sections %d\n-seekable %d\n",
            sfinfo.frames, sfinfo.samplerate, sfinfo.channels, sfinfo.format, sfinfo.sections, sfinfo.seekable);
 
     int samples = sfinfo.frames * sfinfo.channels;

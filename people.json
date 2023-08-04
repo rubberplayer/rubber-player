@@ -1,0 +1,10 @@
+{
+    "sound": "/home/vivien/Bureau/redhouse-mono.wav",
+    "selections": [
+        {
+            "frame_start": 48000,
+            "frame_end": 148000,
+            "label": "frame to frame"
+        }
+    ]
+}

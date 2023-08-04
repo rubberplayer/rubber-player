@@ -292,7 +292,7 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
   m_HeaderBar.pack_end(m_ToggleButton_selections_shown);
   m_ToggleButton_selections_shown.set_label("show selections");
   m_ToggleButton_selections_shown.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::toggle_selections_list_visibility));
-  
+
   // preferences button
   m_HeaderBar.pack_end(m_Button_preferences);
   m_Button_preferences.set_icon_name("gtk-preferences");
@@ -437,10 +437,11 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
   // std::string ui_file_path("/home/vivien/src/test-cambalache/test cambalache.ui");
   // Glib::RefPtr<Gtk::Builder> gtk_builder = Gtk::Builder::create_from_file(ui_file_path);
 }
-void MainWindow::toggle_selections_list_visibility(){ 
-  bool visible = m_ToggleButton_selections_shown.get_active();  
+void MainWindow::toggle_selections_list_visibility()
+{
+  bool visible = m_ToggleButton_selections_shown.get_active();
   m_VBox_selections.set_visible(visible);
-  m_Separator.set_visible(visible);  
+  m_Separator.set_visible(visible);
 }
 void MainWindow::on_time_ratio_value_changed()
 {
@@ -575,8 +576,41 @@ void MainWindow::on_open_audio_file_dialog_response(int response_id, Glib::RefPt
   m_Dialog_open_audio_file->hide();
 }
 
+#include <json/json.h>
+#include <json/value.h>
+#include <fstream>
+void json_test()
+{
+  std::ifstream people_file("./people.json", std::ifstream::binary);
+  Json::Value people;
+  people_file >> people;
+
+  std::cout << people << std::endl; // This will print the entire json object.
+
+  const Json::Value selections = people["selections"];
+  std::cout << "size:" << selections.size() << std::endl;
+  for (int index = 0; index < selections.size(); ++index)
+  {
+    std::cout << selections[index]["frame_start"].asLargestInt() << std::endl;
+    std::cout << selections[index]["frame_end"].asLargestInt() << std::endl;
+  }
+}
+
+#include "./db.h"
+
+void sqlite_test()
+{
+  SelectionDB *selectionDb = new SelectionDB();
+  selectionDb->open_database();
+  selectionDb->create_tables();
+  bool done = selectionDb->insert_selection("/path/to/sound3.wav",16666,19999,"a comment");
+  std::cout << "done" << done << std::endl;
+  selectionDb->load_selections();
+}
 int main(int argc, char *argv[])
 {
+  // json_test();
+  sqlite_test();
   auto app = Gtk::Application::create(); //"org.gtkmm.examples.base");
   return app->make_window_and_run<MainWindow>(argc, argv);
 }
