@@ -235,7 +235,7 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
 /*m_Button_load("play", true)*/
 {
   set_title(APPLICATION_NAME);
-  set_default_size(600, 250);
+  set_default_size(600, 400);
 
   create_actions();
   auto main_menu = create_main_menu();
