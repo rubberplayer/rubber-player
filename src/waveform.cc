@@ -114,6 +114,9 @@ Waveform::Waveform()
     m_selection_surface_dirty = true;
     m_position_surface_dirty = true;
     m_text_surface_dirty = true;
+    
+    selection_start = 0;
+    selection_end = 0;
 
     create_draw_surface();
 

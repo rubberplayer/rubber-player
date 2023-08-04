@@ -27,7 +27,6 @@ SelectionsListBox::~SelectionsListBox()
 
 void SelectionsListBox::on_context_list_selected_rows_changed()
 {
-    std::cout << "on_context_list_selected_rows_changed()" << std::endl;
     auto row = /*m_context_list.*/ get_selected_row();
     if (!row)
         return;
@@ -49,7 +48,7 @@ void SelectionsListBox::on_context_list_selected_rows_changed()
 }
 void SelectionsListBox::on_mouse_enter(double x, double y)
 {
-    printf("enter : %d,%d\n", x, y);
+    printf("enter : %f,%f\n", x, y);
 }
 void SelectionsListBox::on_mouse_leave()
 {
@@ -74,8 +73,12 @@ void SelectionsListBox::add_context(const Glib::ustring &left_timecode, const Gl
     auto listboxrow = row->get_parent();
     listboxrow->set_tooltip_text(duration_timecode);
 
-    auto m_Mousemotion = Gtk::EventControllerMotion::create();
-    add_controller(m_Mousemotion);
+    //auto m_Mousemotion = Gtk::EventControllerMotion::create();
+    //add_controller(m_Mousemotion);
+    row->activate()        ;
+
+    
+    
     // m_Mousemotion->signal_enter().connect(sigc::mem_fun(*this, &SelectionsListBox::on_mouse_enter));
     // m_Mousemotion->signal_leave().connect(sigc::mem_fun(*this, &SelectionsListBox::on_mouse_leave));
 }

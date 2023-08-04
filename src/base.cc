@@ -34,7 +34,7 @@ public:
   {
     double value = get_value_for_display(display_value);
     if (value == 1)
-      return "no change";
+      return "unchanged";
     else if (value > 1)
       return std::to_string((int)std::round(value));
     else
@@ -80,14 +80,20 @@ public:
 
   Gtk::Box m_HBox1;
 
+  Gtk::ToggleButton m_ToggleButton_selections_shown;
+  void toggle_selections_list_visibility();
+
   Gtk::Box m_VBox_selections;
   Gtk::ScrolledWindow m_ScrolledWindow_selections;
   Gtk::Box m_HBox_selection_buttons;
   SelectionsListBox m_SelectionsListBox;
+  Gtk::Label m_Label_selections_label;
   Gtk::Button m_Button_add_selection;
   void on_button_selections_list_add();
   Gtk::Button m_Button_remove_selection;
   void on_button_selections_list_remove();
+
+  Gtk::Separator m_Separator;
 
   Gtk::Box m_VBox_sound;
   Gtk::Frame m_Frame_Waveform;
@@ -244,7 +250,7 @@ std::shared_ptr<Gio::Menu> MainWindow::create_main_menu()
 
 MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
                            m_VBox_sound(Gtk::Orientation::VERTICAL, 8),
-                           m_HBox_time_ratio(Gtk::Orientation::HORIZONTAL, 8),
+                           // m_HBox_time_ratio(Gtk::Orientation::HORIZONTAL, 8),
                            m_Button_play("play", true),
                            m_Button_open("open", true)
 
@@ -283,6 +289,10 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
   m_MenuButton.set_icon_name("open-menu-symbolic");
   m_MenuButton.set_menu_model(main_menu);
 
+  m_HeaderBar.pack_end(m_ToggleButton_selections_shown);
+  m_ToggleButton_selections_shown.set_label("show selections");
+  m_ToggleButton_selections_shown.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::toggle_selections_list_visibility));
+  
   // preferences button
   m_HeaderBar.pack_end(m_Button_preferences);
   m_Button_preferences.set_icon_name("gtk-preferences");
@@ -318,27 +328,48 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
  */
   m_Waveform.set_hack_sound_start_sound_end_sound_position(&player.m_sound_start, &player.m_sound_end, &player.m_sound_position);
 
+  // left_part : selections
   m_VBox0.append(m_HBox1);
-  m_HBox1.set_margin(16);
+  m_HBox1.set_margin(8);
+  m_HBox1.set_margin_top(0);
 
   m_HBox1.append(m_VBox_selections);
+  m_VBox_selections.set_hexpand(false);
+
   m_VBox_selections.set_orientation(Gtk::Orientation::VERTICAL);
 
   m_VBox_selections.append(m_HBox_selection_buttons);
   m_HBox_selection_buttons.set_orientation(Gtk::Orientation::HORIZONTAL);
+  m_HBox_selection_buttons.set_margin_bottom(5);
+
+  m_HBox_selection_buttons.append(m_Label_selections_label);
+  m_Label_selections_label.set_label("Selections");
+  m_Label_selections_label.set_margin_end(20 * 4);
+  m_Label_selections_label.set_hexpand();
 
   m_HBox_selection_buttons.append(m_Button_add_selection);
-  m_Button_add_selection.set_icon_name("list-add");  
+  m_Button_add_selection.set_icon_name("list-add");
+  m_Button_add_selection.set_has_frame(false);
   m_Button_add_selection.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_selections_list_add));
 
   m_HBox_selection_buttons.append(m_Button_remove_selection);
-  m_Button_remove_selection.set_icon_name("list-remove");  
+  m_Button_remove_selection.set_icon_name("list-remove");
+  m_Button_remove_selection.set_has_frame(false);
   m_Button_remove_selection.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_selections_list_remove));
 
   m_VBox_selections.append(m_ScrolledWindow_selections);
+  m_ScrolledWindow_selections.set_policy(Gtk::PolicyType::AUTOMATIC, Gtk::PolicyType::AUTOMATIC);
   m_ScrolledWindow_selections.set_child(m_SelectionsListBox);
   m_SelectionsListBox.set_waveform(&m_Waveform);
   m_ScrolledWindow_selections.set_expand();
+
+  m_HBox1.append(m_Separator);
+  m_Separator.set_orientation(Gtk::Orientation::VERTICAL);
+  m_Separator.set_margin(8);
+
+  toggle_selections_list_visibility();
+
+  // right part : sound + speed + play
 
   m_HBox1.append(m_VBox_sound);
 
@@ -352,6 +383,10 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
   m_Waveform.set_content_height(100);
   m_Waveform.set_expand();
   m_Frame_Waveform.set_child(m_Waveform);
+
+  // m_HBox_time_ratio(, 8),
+  m_HBox_time_ratio.set_orientation(Gtk::Orientation::HORIZONTAL);
+  m_HBox_time_ratio.set_spacing(8);
 
   // time ratio label
   m_Label_time_ratio.set_text("Time Ratio");
@@ -416,14 +451,24 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
   // std::string ui_file_path("/home/vivien/src/test-cambalache/test cambalache.ui");
   // Glib::RefPtr<Gtk::Builder> gtk_builder = Gtk::Builder::create_from_file(ui_file_path);
 }
+void MainWindow::toggle_selections_list_visibility(){
 
+  m_HBox_selection_buttons;
+  
+  bool visible = m_ToggleButton_selections_shown.get_active();  
+  m_VBox_selections.set_visible(visible);
+  m_Separator.set_visible(visible);
+
+  
+}
 void MainWindow::on_time_ratio_value_changed()
 {
   double value = m_time_ratio_range.get_value_for_display(m_Scale_time_ratio.get_value());
   m_Entry_time_ratio.get_buffer()->set_text(std::to_string(value));
   player.set_time_ratio(value);
 }
-void MainWindow::on_button_selections_list_remove(){
+void MainWindow::on_button_selections_list_remove()
+{
   m_SelectionsListBox.remove_selected();
 }
 void MainWindow::on_button_selections_list_add()
@@ -433,22 +478,18 @@ void MainWindow::on_button_selections_list_add()
 
   long selection_start_frame = m_Waveform.get_selection_start_frame();
   long selection_end_frame = m_Waveform.get_selection_end_frame();
-  printf("cliek0 %ld, %ld\n", selection_start_frame, selection_end_frame);
 
   long selection_left_frame = std::min(selection_start_frame, selection_end_frame);
   long selection_right_frame = std::max(selection_start_frame, selection_end_frame);
-  printf("cliek1 %ld, %ld\n", selection_left_frame, selection_right_frame);
 
   double selection_left_seconds = sound.get_second_at_frame(selection_left_frame);
   double selection_right_seconds = sound.get_second_at_frame(selection_right_frame);
   double selection_duration_seconds = sound.get_second_at_frame(selection_right_frame - selection_left_frame);
-  printf("cliekc2 %f -> %f ; [%f]\n", selection_left_seconds, selection_right_seconds, selection_duration_seconds);
 
   auto left_time_code = m_Waveform.regular_timecode_display(selection_left_seconds);
   auto right_time_code = m_Waveform.regular_timecode_display(selection_right_seconds);
   auto duration_time_code = m_Waveform.regular_timecode_display(selection_duration_seconds);
 
-  printf("cliekc3 %s -> %s ; [%s]\n", left_time_code.c_str(), right_time_code.c_str(), duration_time_code.c_str());
   m_SelectionsListBox.add_context(left_time_code, right_time_code, duration_time_code, selection_start_frame, selection_end_frame);
 }
 
