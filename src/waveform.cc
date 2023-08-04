@@ -505,6 +505,12 @@ void Waveform::draw_sound()
     bool separated_channels = true; 
     float channel_height = (separated_channels)?(sh/(float)channels):(sh);
 
+    // do not analyse every sample if there are too many
+    double max_samples_analyzed = 1500000;   
+    double max_samples_analyzed_by_channel_frame = max_samples_analyzed / sw / channels;
+    double no_pass_samples_analyzed_by_channel_frame = visible_frames / sw;   
+    int analyze_step = std::max(1.0,std::ceil(no_pass_samples_analyzed_by_channel_frame / max_samples_analyzed_by_channel_frame));
+
     for (int channel = 0; channel < channels; channel++)
     {
         int channel_offset = separated_channels?(channel * channel_height):0;
@@ -524,11 +530,12 @@ void Waveform::draw_sound()
             }
             float max = -1;
             float min = 1;
-            for (int j = p0; j <= p1; j++)
+            for (int j = p0; j <= p1; j+=analyze_step)
             {
                 float value = sound_data[j * channels + channel];
                 max = std::max(max, value);
                 min = std::min(min, value);
+                // n_samples_analyzed++;
             }
             int x = i;
             int y = channel_offset + ((min + 1.0) / 2.0) * channel_height;
@@ -538,6 +545,7 @@ void Waveform::draw_sound()
             cr->fill();
         }
     }
+    //printf("%ld samples abalyzed\n",n_samples_analyzed);
 }
 
 Waveform::SelectionHotHandle Waveform::closest_hot_handle(double x)
