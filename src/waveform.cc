@@ -191,12 +191,16 @@ bool Waveform::on_vbl_timeout()
 void Waveform::on_mouse_leave()
 {
     m_mouse_hover = false;
+    m_selection_surface_dirty = true;
+    m_text_surface_dirty = true;
+    queue_draw();
 }
 void Waveform::on_mouse_enter(double x, double y)
 {
     m_mouse_hover = true;
     mouse_x = x;
     mouse_y = y;
+    m_selection_surface_dirty = true;
     m_text_surface_dirty = true;
     queue_draw();
 }
@@ -208,7 +212,6 @@ void Waveform::on_mouse_motion(double x, double y)
 
     proximity_hot_handle = closest_hot_handle(x);
     m_selection_surface_dirty = true;
-
     m_text_surface_dirty = true;
     queue_draw();
 }

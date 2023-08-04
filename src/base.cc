@@ -263,7 +263,7 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
 // 
   // }
   // menu button
-  m_HeaderBar.pack_end(m_MenuButton);
+  //m_HeaderBar.pack_end(m_MenuButton);
   m_MenuButton.set_icon_name("open-menu-symbolic");
   m_MenuButton.set_menu_model(main_menu);
 
