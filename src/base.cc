@@ -310,22 +310,8 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
     m_HeaderBar.set_show_title_buttons(false);
     Gtk::Box empty_box;
     m_HeaderBar.set_title_widget(empty_box);
-    // Gtk::Widget* title_widget = m_HeaderBar.get_title_widget();
-    // m_HeaderBar.remove(title_widget);
   }
 
-  //.local/share/recently-used.xbel
-
-  // https://developer.gnome.org/hig/patterns/controls/menus.html
-
-  // https://docs.gtk.org/gtk4/class.PopoverMenu.html
-  /*
-     auto icon = Gio::ThemedIcon("open-menu-symbolic");
-     auto image = Gtk::Image::new_from_gicon(icon, Gtk::IconSize.BUTTON);
-     button_header_menu.get_child().destroy()
-     button_header_menu.add(image)
-     button_header_menu.show_all()
- */
   m_Waveform.set_hack_sound_start_sound_end_sound_position(&player.m_sound_start, &player.m_sound_end, &player.m_sound_position);
 
   // left_part : selections
@@ -451,15 +437,10 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
   // std::string ui_file_path("/home/vivien/src/test-cambalache/test cambalache.ui");
   // Glib::RefPtr<Gtk::Builder> gtk_builder = Gtk::Builder::create_from_file(ui_file_path);
 }
-void MainWindow::toggle_selections_list_visibility(){
-
-  m_HBox_selection_buttons;
-  
+void MainWindow::toggle_selections_list_visibility(){ 
   bool visible = m_ToggleButton_selections_shown.get_active();  
   m_VBox_selections.set_visible(visible);
-  m_Separator.set_visible(visible);
-
-  
+  m_Separator.set_visible(visible);  
 }
 void MainWindow::on_time_ratio_value_changed()
 {
