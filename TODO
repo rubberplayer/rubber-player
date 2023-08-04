@@ -10,6 +10,7 @@
 - move playhead without changing selection
 - ? recent files via splitbutton (libadw)
 - use actions for everything + shortcuts
+- warnings : "will be initialized after"
 
 OptionProcessOffline 	
 OptionProcessRealTime 	

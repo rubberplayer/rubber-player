@@ -93,7 +93,6 @@ RubberBandOptionsWindow::RubberBandOptionsWindow()
 {
     {
         using RubberBand::RubberBandStretcher;
-        RubberBandOptionValue joe("Faster", RubberBandStretcher::OptionEngineFaster);
         options = {
             new RubberBandOption("Engine",
                                  {RubberBandOptionValue("Faster", RubberBandStretcher::OptionEngineFaster), RubberBandOptionValue("Finer", RubberBandStretcher::OptionEngineFiner)},
@@ -184,6 +183,8 @@ RubberBandOptionsWindow::RubberBandOptionsWindow()
     
 }
 void RubberBandOptionsWindow::on_apply(){
+
+    auto bits = get_rubberband_option_bits();
 
     // setTransientsOption()
     // setDetectorOption()

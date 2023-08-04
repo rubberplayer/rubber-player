@@ -33,9 +33,20 @@ Player::Player()
     m_pa_simple = NULL;
     rubberBandStretcher = NULL;
 
+    set_rubberband_flag_options(RubberBand::RubberBandStretcher::DefaultOptions | RubberBand::RubberBandStretcher::OptionEngineFiner);
+
     m_play_started.store(false);
     m_terminate_the_play_thread.store(false);
 }
+void Player::set_rubberband_flag_options(int flag_options)
+{
+    m_rubberband_flag_options.store(RubberBand::RubberBandStretcher::OptionProcessRealTime | flag_options);
+}
+int Player::get_rubberband_flag_options()
+{
+    return m_rubberband_flag_options.load();
+}
+
 void Player::connect_to_pulseaudio(int channels, int framerate)
 {
     printf("connect to pulseaudio channels %d; framerate %d\n", channels, framerate);
@@ -58,9 +69,12 @@ void Player::connect_to_pulseaudio(int channels, int framerate)
 };
 void Player::initialize_RubberBand(int channels, int samplerate)
 {
-    RubberBand::RubberBandStretcher::Options rubberband_options =
-        RubberBand::RubberBandStretcher::DefaultOptions | RubberBand::RubberBandStretcher::OptionProcessRealTime | RubberBand::RubberBandStretcher::OptionEngineFiner;
+    /*
+        RubberBand::RubberBandStretcher::Options rubberband_options =
+            RubberBand::RubberBandStretcher::DefaultOptions | RubberBand::RubberBandStretcher::OptionProcessRealTime | RubberBand::RubberBandStretcher::OptionEngineFiner;
+    */
 
+    RubberBand::RubberBandStretcher::Options rubberband_options = m_rubberband_flag_options.load() | RubberBand::RubberBandStretcher::OptionProcessRealTime;
     rubberBandStretcher = new RubberBand::RubberBandStretcher(samplerate, channels, rubberband_options);
     printf("RubberBand engine version : %d\n", rubberBandStretcher->getEngineVersion());
     printf("RubberBand channel count : %ld\n", rubberBandStretcher->getChannelCount());
@@ -82,7 +96,6 @@ void Player::play_always()
     }
 
     size_t rubberband_output_block_size = 2 * 3 * 4 * 5 * 6 * 7 * 256;
-    // float *rubberband_output = (float *)malloc(rubberband_output_block_size * sizeof(float));
     float **rubberband_output = new float *[channels];
     for (int i = 0; i < channels; ++i)
     {

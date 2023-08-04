@@ -13,6 +13,11 @@ public:
   void play_always();
   std::thread m_the_play_thread;
   std::atomic<bool> m_terminate_the_play_thread;
+  void set_rubberband_flag_options(int flag_options);
+  int get_rubberband_flag_options();
+
+  //std::atomic<RubberBand::RubberBandStretcher::Option> m_rubberband_flag_options;
+
   void stop_playing_thread();
   void start_playing_thread();
 
@@ -43,4 +48,6 @@ private:
   pa_sample_spec m_pa_sample_spec;
   void initialize_RubberBand(int channels, int samplerate);
   RubberBand::RubberBandStretcher *rubberBandStretcher;
+  std::atomic<int> m_rubberband_flag_options;
+
 };
