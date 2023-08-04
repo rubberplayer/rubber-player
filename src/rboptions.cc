@@ -15,16 +15,32 @@ RubberBandOptionsWindow::RubberBandOption::RubberBandOption(std::string name, st
     m_engines = engines;
     m_needs_restart = needs_restart;
 }
+bool RubberBandOptionsWindow::RubberBandOption::needs_restart(std::string engine_revision)
+{
+    for (auto revision : m_needs_restart)
+    {
+        if (revision.compare(engine_revision) == 0)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+RubberBand::RubberBandStretcher::Options RubberBandOptionsWindow::RubberBandOption::get_mask()
+{
+    RubberBand::RubberBandStretcher::Options mask = 0;
+    for (auto value : m_values)
+    {
+        mask |= value.m_rubberband_option_flag;
+    }
+    return mask;
+}
 void RubberBandOptionsWindow::set_from_rubberband_option_bits(RubberBand::RubberBandStretcher::Options bits)
 {
     for (auto p_option : options)
     {
         // build mask from this option values
-        RubberBand::RubberBandStretcher::Options mask = 0;
-        for (auto value : p_option->m_values)
-        {
-            mask |= value.m_rubberband_option_flag;
-        }
+        RubberBand::RubberBandStretcher::Options mask = p_option->get_mask();
         RubberBand::RubberBandStretcher::Options masked = bits & mask;
 
         // find and set value
@@ -49,9 +65,8 @@ RubberBand::RubberBandStretcher::Options RubberBandOptionsWindow::get_rubberband
     }
     return bits;
 }
-void RubberBandOptionsWindow::set_sensitive_from_revision()
+std::string RubberBandOptionsWindow::get_engine_revision()
 {
-    //  get current_engine_revision
     std::string current_engine_revision;
     for (auto p_option : options)
     {
@@ -62,6 +77,13 @@ void RubberBandOptionsWindow::set_sensitive_from_revision()
             break;
         }
     }
+    return current_engine_revision;
+}
+void RubberBandOptionsWindow::set_sensitive_from_revision()
+{
+    //  get current_engine_revision
+    std::string current_engine_revision = get_engine_revision();
+
     for (auto p_option : options)
     {
         bool match_current_engine_revision = false;
@@ -126,6 +148,7 @@ RubberBandOptionsWindow::RubberBandOptionsWindow()
                                  {"R2", "R3"}, {"R2", "R3"}),
         };
     }
+    m_p_player = NULL;
 
     this->set_default_size(220, 156);
     this->set_title("Stretching");
@@ -160,8 +183,8 @@ RubberBandOptionsWindow::RubberBandOptionsWindow()
 
         // model + values
         std::vector<Glib::ustring> strings;
-        for (auto value : p_option->m_values)        
-        {            
+        for (auto value : p_option->m_values)
+        {
             strings.push_back(value.m_name);
         }
         auto model = Gtk::StringList::create(strings);
@@ -173,23 +196,56 @@ RubberBandOptionsWindow::RubberBandOptionsWindow()
             sigc::bind(sigc::mem_fun(*this, &RubberBandOptionsWindow::selected_item_changed), option_dropdown, p_option));
     }
 
-    set_from_rubberband_option_bits(RubberBand::RubberBandStretcher::OptionEngineFiner | RubberBand::RubberBandStretcher::OptionPitchHighConsistency | RubberBand::RubberBandStretcher::OptionTransientsMixed);
+    /*    set_from_rubberband_option_bits(RubberBand::RubberBandStretcher::OptionEngineFiner | RubberBand::RubberBandStretcher::OptionPitchHighConsistency | RubberBand::RubberBandStretcher::OptionTransientsMixed);
+        set_sensitive_from_revision();
+      */
     set_sensitive_from_revision();
-    
     m_Button_apply.set_label("Appliquer");
-    m_Button_apply.set_hexpand();    
+    m_Button_apply.set_hexpand();
     m_vertical_box.append(m_Button_apply);
     m_Button_apply.signal_clicked().connect(sigc::mem_fun(*this, &RubberBandOptionsWindow::on_apply));
-    
 }
-void RubberBandOptionsWindow::on_apply(){
+void RubberBandOptionsWindow::set_player(Player *p_player)
+{
+    m_p_player = p_player;
+}
+bool RubberBandOptionsWindow::changes_needs_restart(int from, int to)
+{
+    bool needs_restart = false;
+    auto engine_revision = get_engine_revision();
+    for (auto p_option : options)
+    {
+        auto mask = p_option->get_mask();
+        bool option_changed = (from & mask) != (to & mask);
+        if (option_changed)
+        {
+            printf("[rubberband-option-window] changed : %s\n", p_option->m_name.c_str());
+            if (p_option->needs_restart(engine_revision))
+            {
+                printf("[rubberband-option-window]  needs restart\n");
+                needs_restart = true;
+                break;
+            }
+        }
+        else
+        {
+            // printf("UNchanged : %s\n",p_option->m_name.c_str());
+        }
+    }
+    return needs_restart;
+}
+void RubberBandOptionsWindow::on_apply()
+{
 
     auto bits = get_rubberband_option_bits();
+    auto current_player_bits = m_p_player->get_rubberband_flag_options();
 
-    // setTransientsOption()
-    // setDetectorOption()
-    // setPhaseOption()
-    // setFormantOption()
-    // setPitchOption()
-
+    m_p_player->set_rubberband_flag_options(bits);
+    if (changes_needs_restart(current_player_bits, bits))
+    {
+        m_p_player->stop_playing_thread();
+        m_p_player->start_playing_thread();
+        m_p_player->start_playing();
+    }
+  
 }

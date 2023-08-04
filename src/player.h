@@ -1,3 +1,5 @@
+#ifndef PLAYER_H
+#define PLAYER_H
 #include <pulse/simple.h>
 #include <pulse/error.h>
 #include <rubberband/RubberBandStretcher.h>
@@ -46,8 +48,9 @@ private:
   void connect_to_pulseaudio(int channels, int framerate);
   pa_simple *m_pa_simple;
   pa_sample_spec m_pa_sample_spec;
-  void initialize_RubberBand(int channels, int samplerate);
+  int initialize_RubberBand(int channels, int samplerate);
   RubberBand::RubberBandStretcher *rubberBandStretcher;
   std::atomic<int> m_rubberband_flag_options;
 
 };
+#endif

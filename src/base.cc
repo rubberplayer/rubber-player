@@ -154,7 +154,9 @@ void MainWindow::on_preferences()
 {
   std::cout << "preferences..." << std::endl;
   rubberband_options_window = new RubberBandOptionsWindow;
+  rubberband_options_window->set_from_rubberband_option_bits(player.get_rubberband_flag_options());
   rubberband_options_window->show();
+  rubberband_options_window->set_player(&player);
 }
 void MainWindow::on_file_quit()
 {

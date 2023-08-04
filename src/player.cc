@@ -7,6 +7,7 @@
 
 Player::~Player()
 {
+    printf("destroy player\n");
     m_terminate_the_play_thread.store(true);
     if (m_the_play_thread.joinable())
     {
@@ -67,7 +68,7 @@ void Player::connect_to_pulseaudio(int channels, int framerate)
     );
     printf("is pa object null ? %p , error? %d , error message : %s \n", m_pa_simple, pa_connect_error, pa_strerror(pa_connect_error));
 };
-void Player::initialize_RubberBand(int channels, int samplerate)
+int Player::initialize_RubberBand(int channels, int samplerate)
 {
     /*
         RubberBand::RubberBandStretcher::Options rubberband_options =
@@ -78,13 +79,14 @@ void Player::initialize_RubberBand(int channels, int samplerate)
     rubberBandStretcher = new RubberBand::RubberBandStretcher(samplerate, channels, rubberband_options);
     printf("RubberBand engine version : %d\n", rubberBandStretcher->getEngineVersion());
     printf("RubberBand channel count : %ld\n", rubberBandStretcher->getChannelCount());
+    return rubberband_options;
 }
 void Player::play_always()
 {
     int channels = m_sound->get_channels();
     printf("void Player::play_always()\n");
     connect_to_pulseaudio(channels, m_sound->get_samplerate());
-    initialize_RubberBand(channels, m_sound->get_samplerate());
+    int rubberband_flag_options = initialize_RubberBand(channels, m_sound->get_samplerate());
 
     long position = 0;
 
@@ -155,6 +157,17 @@ void Player::play_always()
                 printf("[player] just started, with %ld samples sent \n", samples_sent_to_sink);
             }
             previous_play_state = l_play_started;
+        }
+        int maybe_changed_rubberband_flag_options = m_rubberband_flag_options.load();
+        if (maybe_changed_rubberband_flag_options != rubberband_flag_options)
+        {
+            printf("[player] saw changed option\n");
+            rubberBandStretcher->setTransientsOption(maybe_changed_rubberband_flag_options);
+            rubberBandStretcher->setDetectorOption(maybe_changed_rubberband_flag_options);
+            rubberBandStretcher->setPhaseOption(maybe_changed_rubberband_flag_options);
+            rubberBandStretcher->setFormantOption(maybe_changed_rubberband_flag_options);
+            rubberBandStretcher->setPitchOption(maybe_changed_rubberband_flag_options);
+            rubberband_flag_options = maybe_changed_rubberband_flag_options;
         }
 
         long selection_start = m_sound_start.load();
