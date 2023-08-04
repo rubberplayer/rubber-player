@@ -319,8 +319,11 @@ void Player::stop_playing_thread()
 }
 void Player::start_playing_thread()
 {
-    m_the_play_thread = std::thread([this]
-                                    { play_always(); });
+    if (m_sound != NULL)
+    {
+        m_the_play_thread = std::thread([this]
+                                        { play_always(); });
+    }
 }
 void Player::set_sound(Sound *sound)
 {
