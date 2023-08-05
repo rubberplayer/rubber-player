@@ -9,7 +9,7 @@
 #include "./sound.h"
 #include "./waveform.h"
 #include "./rboptions.h"
-#include "./selections.cc"
+#include "./selections.h"
 #include "./db.h"
 
 #define USE_HEADERBAR_TITLEBAR false
@@ -370,7 +370,7 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
 
   // waveform frame and Waveform (DrawingArea)
   m_VBox_sound.append(m_Frame_Waveform);
-  m_Waveform.set_content_width(140);
+  m_Waveform.set_content_width(180);
   m_Waveform.set_content_height(100);
   m_Waveform.set_expand();
   m_Frame_Waveform.set_child(m_Waveform);

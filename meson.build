@@ -7,8 +7,14 @@ alldeps = [
     dependency('jsoncpp'),
     dependency('sqlite3')
 ]
-sources = ['src/base.cc', 'src/rboptions.cc',  'src/player.cc',  'src/sound.cc',  'src/waveform.cc', 'src/db.cc'
-
+sources = [
+    'src/base.cc', 
+    'src/db.cc',
+    'src/player.cc',  
+    'src/rboptions.cc',  
+    'src/selections.cc',  
+    'src/sound.cc',  
+    'src/waveform.cc', 
 ]
 executable('rubber-player', sources, dependencies : alldeps)
 
