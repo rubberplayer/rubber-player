@@ -41,11 +41,9 @@ void SelectionsListBox::on_context_list_selected_rows_changed()
 }
 void SelectionsListBox::on_mouse_enter(double x, double y)
 {
-    printf("enter : %f,%f\n", x, y);
-}
+}   
 void SelectionsListBox::on_mouse_leave()
 {
-    printf("leave \n");
 }
 IconContextLabel *SelectionsListBox::remove_selected()
 {

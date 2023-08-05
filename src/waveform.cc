@@ -185,8 +185,6 @@ Waveform::Waveform()
 
 bool Waveform::on_vbl_timeout()
 {
-    // long position = hack_sound_position->load();
-    // printf("position %d\n", position);
     m_position_surface_dirty = true;
     queue_draw();
     return true;
@@ -343,8 +341,6 @@ void Waveform::draw_scale()
         double pixel_per_second = vw / visible_length_s;
         double pixel_per_unit = unit_length_s * pixel_per_second;
 
-        //        printf("p/s: %f ; unit : %f p/u : %f \n", pixel_per_second, unit_length_s, pixel_per_unit);
-
         double show_unit_low_bound_px = 20.0;
         int caption_shown_count = 0;
         if (pixel_per_unit <= show_unit_low_bound_px)
@@ -380,10 +376,8 @@ void Waveform::draw_scale()
 
     if ((false) && (caption_scale_unit != NULL))
     {
-        // printf("caption_scale_unit::::: %s\n", caption_scale_unit->to_string().c_str());
         double unit_length_s = caption_scale_unit->m_period_s; // 0.1;
-        //        double unit_display_height_px = caption_scale_unit->m_display_height_px; // scale_unit.m_period_s 20;
-
+     
         double left_s = std::floor(visible_start_s / unit_length_s) * unit_length_s;
         double right_s = std::ceil(visible_end_s / unit_length_s) * unit_length_s;
         for (double x_s = left_s; x_s <= right_s; x_s += unit_length_s)
@@ -550,7 +544,6 @@ void Waveform::draw_sound()
             cr->fill();
         }
     }
-    // printf("%ld samples abalyzed\n",n_samples_analyzed);
 }
 
 Waveform::SelectionHotHandle Waveform::closest_hot_handle(double x)

@@ -174,7 +174,6 @@ void MainWindow::set_selection_bounds(long selection_start, long selection_end)
 */
 void MainWindow::on_preferences()
 {
-  std::cout << "preferences..." << std::endl;
   rubberband_options_window = new RubberBandOptionsWindow;
   rubberband_options_window->set_from_rubberband_option_bits(player.get_rubberband_flag_options());
   rubberband_options_window->show();
@@ -182,11 +181,11 @@ void MainWindow::on_preferences()
 }
 void MainWindow::on_file_quit()
 {
-  std::cout << "file quit..." << std::endl;
+  std::cout << "TODO file quit..." << std::endl;
 }
 void MainWindow::on_about()
 {
-  std::cout << "about..." << std::endl;
+  std::cout << "TODO about..." << std::endl;
 }
 void MainWindow::create_actions()
 {
@@ -280,11 +279,9 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
   //   m_PopoverMenuBar_open_recent.set_menu_model(recent_menu);
   //   for (auto recent_item_info : recent_manager->get_items())
   //   {
-  //     std::cout << recent_item_info->get_uri() << std::endl;
   //     recent_menu->append(recent_item_info->get_uri());
   //     for (auto application : recent_item_info->get_applications())
   //     {
-  //       std::cout << application << std::endl;
   //     }
   //   }
   //
@@ -478,7 +475,6 @@ void MainWindow::on_time_ratio_value_changed()
 void MainWindow::on_button_play_clicked()
 {
   bool active = m_Button_play.get_active();
-  printf("on_button_play_clicked clicked : active : %b\n", active);
   if (active)
   {
     player.start_playing();
@@ -494,7 +490,6 @@ void MainWindow::load_sound(std::string path)
   m_Button_play.set_active(false);
   m_Waveform.set_sound(NULL);
   player.stop_playing_thread();
-  printf("load sound a filename path %s\n", path.c_str());
   sound.load(path);
   if (sound.is_loaded())
   {
@@ -508,11 +503,6 @@ void MainWindow::load_sound(std::string path)
       long selection_start_frame = std::get<1>(row);
       long selection_end_frame = std::get<2>(row);
       std::string label = std::get<3>(row);
-      // std::cout << path << " "
-      //           << selection_start_frame << " "
-      //           << selection_end_frame << " "
-      //           << label << " "
-      //           << std::endl;
       m_SelectionsListBox.add_context(selection_start_frame, selection_end_frame, label);
     }
   }
@@ -571,7 +561,7 @@ bool MainWindow::on_button_drop_drop_data(const Glib::ValueBase &value, double, 
   }
   else
   {
-    std::cout << "Received unexpected data type \"" << G_VALUE_TYPE_NAME(value.gobj()) << "\" in button " << std::endl;
+    std::cerr << "Received unexpected data type \"" << G_VALUE_TYPE_NAME(value.gobj()) << "\" in button " << std::endl;
   }
   return false;
 }
@@ -580,7 +570,6 @@ void MainWindow::on_open_audio_file_dialog_response(int response_id, Glib::RefPt
   Glib::RefPtr<Gio::File> filename = m_Dialog_open_audio_file->get_file();
   if (filename == NULL)
   {
-    printf("nothing selected\n");
   }
   else
   {
@@ -590,47 +579,47 @@ void MainWindow::on_open_audio_file_dialog_response(int response_id, Glib::RefPt
   m_Dialog_open_audio_file->hide();
 }
 
-#include <json/json.h>
-#include <json/value.h>
-#include <fstream>
-void json_test()
-{
-  std::ifstream people_file("./people.json", std::ifstream::binary);
-  Json::Value people;
-  people_file >> people;
-
-  std::cout << people << std::endl; // This will print the entire json object.
-
-  const Json::Value selections = people["selections"];
-  std::cout << "size:" << selections.size() << std::endl;
-  for (unsigned int index = 0; index < selections.size(); ++index)
-  {
-    std::cout << selections[index]["frame_start"].asLargestInt() << std::endl;
-    std::cout << selections[index]["frame_end"].asLargestInt() << std::endl;
-  }
-}
-
-void sqlite_test()
-{
-  SelectionDB *selectionDb = new SelectionDB();
-  selectionDb->start();
-  bool done = selectionDb->insert_selection("/path/to/sound3.wav", 26666, 29999, "xa comment");
-  std::cout << "done" << done << std::endl;
-  auto rows = selectionDb->load_sound_selections("/path/to/sound3.wav");
-
-  for (auto row : (*rows))
-  {
-    std::string path = std::get<0>(row);
-    long frame_start = std::get<1>(row);
-    long frame_end = std::get<2>(row);
-    std::string label = std::get<3>(row);
-    std::cout << path << " "
-              << frame_start << " "
-              << frame_end << " "
-              << label << " "
-              << std::endl;
-  }
-}
+// #include <json/json.h>
+// #include <json/value.h>
+// #include <fstream>
+// void json_test()
+// {
+//   std::ifstream people_file("./people.json", std::ifstream::binary);
+//   Json::Value people;
+//   people_file >> people;
+// 
+//   std::cout << people << std::endl; // This will print the entire json object.
+// 
+//   const Json::Value selections = people["selections"];
+//   std::cout << "size:" << selections.size() << std::endl;
+//   for (unsigned int index = 0; index < selections.size(); ++index)
+//   {
+//     std::cout << selections[index]["frame_start"].asLargestInt() << std::endl;
+//     std::cout << selections[index]["frame_end"].asLargestInt() << std::endl;
+//   }
+// }
+// 
+// void sqlite_test()
+// {
+//   SelectionDB *selectionDb = new SelectionDB();
+//   selectionDb->start();
+//   bool done = selectionDb->insert_selection("/path/to/sound3.wav", 26666, 29999, "xa comment");
+//   std::cout << "done" << done << std::endl;
+//   auto rows = selectionDb->load_sound_selections("/path/to/sound3.wav");
+// 
+//   for (auto row : (*rows))
+//   {
+//     std::string path = std::get<0>(row);
+//     long frame_start = std::get<1>(row);
+//     long frame_end = std::get<2>(row);
+//     std::string label = std::get<3>(row);
+//     std::cout << path << " "
+//               << frame_start << " "
+//               << frame_end << " "
+//               << label << " "
+//               << std::endl;
+//   }
+// }
 int main(int argc, char *argv[])
 {
   // json_test();

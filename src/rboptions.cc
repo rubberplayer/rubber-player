@@ -103,8 +103,6 @@ void RubberBandOptionsWindow::selected_item_changed(const Gtk::DropDown *dropdow
     auto name = rubber_band_option->m_name;
     int selected = dropdown->get_selected();
     auto selected_value = rubber_band_option->m_values[selected];
-    printf("changed %s to %s\n", name.c_str(), selected_value.m_name.c_str());
-
     if (rubber_band_option->m_name.compare("Engine") == 0)
     {
         set_sensitive_from_revision();

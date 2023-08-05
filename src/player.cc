@@ -7,7 +7,6 @@
 
 Player::~Player()
 {
-    printf("destroy player\n");
     m_terminate_the_play_thread.store(true);
     if (m_the_play_thread.joinable())
     {
@@ -50,7 +49,7 @@ int Player::get_rubberband_flag_options()
 
 void Player::connect_to_pulseaudio(int channels, int framerate)
 {
-    printf("connect to pulseaudio channels %d; framerate %d\n", channels, framerate);
+    printf("[player] connect to pulseaudio channels %d; framerate %d\n", channels, framerate);
     m_pa_sample_spec.format = PA_SAMPLE_FLOAT32;
     m_pa_sample_spec.channels = channels;
     m_pa_sample_spec.rate = framerate;
@@ -66,7 +65,7 @@ void Player::connect_to_pulseaudio(int channels, int framerate)
                                 NULL,              // Use default buffering attributes.
                                 &pa_connect_error  // Ignore error code.
     );
-    printf("is pa object null ? %p , error? %d , error message : %s \n", m_pa_simple, pa_connect_error, pa_strerror(pa_connect_error));
+    printf("[player] is pulseaudio object null ? %p , error? %d , error message : %s \n", m_pa_simple, pa_connect_error, pa_strerror(pa_connect_error));
 };
 int Player::initialize_RubberBand(int channels, int samplerate)
 {
@@ -77,14 +76,13 @@ int Player::initialize_RubberBand(int channels, int samplerate)
 
     RubberBand::RubberBandStretcher::Options rubberband_options = m_rubberband_flag_options.load() | RubberBand::RubberBandStretcher::OptionProcessRealTime;
     rubberBandStretcher = new RubberBand::RubberBandStretcher(samplerate, channels, rubberband_options);
-    printf("RubberBand engine version : %d\n", rubberBandStretcher->getEngineVersion());
-    printf("RubberBand channel count : %ld\n", rubberBandStretcher->getChannelCount());
+    printf("[player] RubberBand engine version : %d\n", rubberBandStretcher->getEngineVersion());
+    printf("[player] RubberBand channel count : %ld\n", rubberBandStretcher->getChannelCount());
     return rubberband_options;
 }
 void Player::play_always()
 {
     int channels = m_sound->get_channels();
-    printf("void Player::play_always()\n");
     connect_to_pulseaudio(channels, m_sound->get_samplerate());
     int rubberband_flag_options = initialize_RubberBand(channels, m_sound->get_samplerate());
 
@@ -138,7 +136,7 @@ void Player::play_always()
                 int pa_drain_error;
                 if (pa_simple_drain(m_pa_simple, &pa_drain_error) < 0)
                 {
-                    fprintf(stderr, __FILE__ ": pa_simple_drain() failed: %s\n", pa_strerror(pa_drain_error));
+                    printf( "[player] pa_simple_drain() failed: %s\n", pa_strerror(pa_drain_error));
                 }
                 // so sleep before doing anything;
                 std::this_thread::sleep_for(std::chrono::milliseconds(samples_remaining_ms));
@@ -185,9 +183,6 @@ void Player::play_always()
         rubberBandStretcher->setTimeRatio(time_ratio);
         rubberBandStretcher->setPitchScale(pitch_scale);
 
-        //    printf("sound samplerate : %d ; channels : %d, selection [%d,%d] ; pitch scale : %f ; time_ratio : %f, position : %d, time position : %f\n",
-        //           m_sound->sfinfo.samplerate, m_sound->sfinfo.channels, selection_left, selection_right, pitch_scale, time_ratio, position, time_position);
-
         if (position < selection_left)
             position = selection_left;
 
@@ -197,7 +192,7 @@ void Player::play_always()
         size_t samples_requiered = rubberBandStretcher->getSamplesRequired();
 
         long block_size = std::min(max_rubberband_input_block_size, (long)samples_requiered);
-        // printf("samples_required %d, block_size %d\n",samples_requiered,block_size);
+
         if ((position + block_size) >= selection_right)
         {
             block_size = selection_right - position;
@@ -238,15 +233,14 @@ void Player::play_always()
 
             if (samples_sent_to_sink == 0)
             {
-                printf("=========\n");
                 date_of_first_sample_sent_to_sink = std::chrono::high_resolution_clock::now();
             }
             samples_sent_to_sink += retrieve_from_rubberband_size;
 
             if (pa_write_error < 0)
             {
-                printf("pa_write_error\n");
-                printf("error while writing to pa sink (%d samples) ? %d : %s\n", retrieve_from_rubberband_size, pa_write_error, pa_strerror(pa_write_error));
+                printf("[player] pa_write_error\n");
+                printf("[player] error while writing to pa sink (%d samples) ? %d : %s\n", retrieve_from_rubberband_size, pa_write_error, pa_strerror(pa_write_error));
             }
         }
         position += block_size;
@@ -255,17 +249,17 @@ void Player::play_always()
 
         if (block_size == 0)
         {
-            printf("ooooooooooooooooooodddddddddddddddddddiity\n");
+            printf("[player] Should not be here ?\n");
             std::this_thread::sleep_for(std::chrono::milliseconds(16));
         }
     }
 
-    printf("end of thread\n");
+    printf("[player] end of thread\n");
 
     int pa_drain_error;
     if (pa_simple_drain(m_pa_simple, &pa_drain_error) < 0)
     {
-        fprintf(stderr, __FILE__ ": pa_simple_drain() failed: %s\n", pa_strerror(pa_drain_error));
+        printf( "[player] pa_simple_drain() failed: %s\n", pa_strerror(pa_drain_error));
     }
 
     for (int i = 0; i < channels; ++i)
@@ -297,13 +291,11 @@ void Player::play_always()
 
 void Player::start_playing()
 {
-    printf("Player::start_playing\n");
     m_play_started.store(true);
 }
 
 void Player::stop_playing()
 {
-    printf("Player::stop_playing\n");
     m_play_started.store(false);
 }
 void Player::stop_playing_thread()
