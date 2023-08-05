@@ -49,7 +49,7 @@ int Player::get_rubberband_flag_options()
 
 void Player::connect_to_pulseaudio(int channels, int framerate)
 {
-    printf("[player] connect to pulseaudio channels %d; framerate %d\n", channels, framerate);
+    fprintf(stderr,"[player] connect to pulseaudio channels %d; framerate %d\n", channels, framerate);
     m_pa_sample_spec.format = PA_SAMPLE_FLOAT32;
     m_pa_sample_spec.channels = channels;
     m_pa_sample_spec.rate = framerate;
@@ -65,7 +65,7 @@ void Player::connect_to_pulseaudio(int channels, int framerate)
                                 NULL,              // Use default buffering attributes.
                                 &pa_connect_error  // Ignore error code.
     );
-    printf("[player] is pulseaudio object null ? %p , error? %d , error message : %s \n", m_pa_simple, pa_connect_error, pa_strerror(pa_connect_error));
+    fprintf(stderr,"[player] is pulseaudio object null ? %p , error? %d , error message : %s \n", m_pa_simple, pa_connect_error, pa_strerror(pa_connect_error));
 };
 int Player::initialize_RubberBand(int channels, int samplerate)
 {
@@ -76,8 +76,8 @@ int Player::initialize_RubberBand(int channels, int samplerate)
 
     RubberBand::RubberBandStretcher::Options rubberband_options = m_rubberband_flag_options.load() | RubberBand::RubberBandStretcher::OptionProcessRealTime;
     rubberBandStretcher = new RubberBand::RubberBandStretcher(samplerate, channels, rubberband_options);
-    printf("[player] RubberBand engine version : %d\n", rubberBandStretcher->getEngineVersion());
-    printf("[player] RubberBand channel count : %ld\n", rubberBandStretcher->getChannelCount());
+    fprintf(stderr,"[player] RubberBand engine version : %d\n", rubberBandStretcher->getEngineVersion());
+    fprintf(stderr,"[player] RubberBand channel count : %ld\n", rubberBandStretcher->getChannelCount());
     return rubberband_options;
 }
 void Player::play_always()
@@ -124,19 +124,19 @@ void Player::play_always()
                 auto begin = date_of_first_sample_sent_to_sink;
                 auto end = std::chrono::high_resolution_clock::now();
                 long previous_play_session_duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
-                printf("[player] just stopped, with %ld samples sent\n", samples_sent_to_sink);
+                fprintf(stderr,"[player] just stopped, with %ld samples sent\n", samples_sent_to_sink);
                 long samples_sent_to_sink_ms = (1000 * samples_sent_to_sink) / ((long)(m_sound->sfinfo.samplerate));
-                printf("[player]                    %ld ms of samples sent\n", samples_sent_to_sink_ms);
-                printf("[player]      while %ld ms of time passed\n", previous_play_session_duration_ms);
+                fprintf(stderr,"[player]                    %ld ms of samples sent\n", samples_sent_to_sink_ms);
+                fprintf(stderr,"[player]      while %ld ms of time passed\n", previous_play_session_duration_ms);
                 long samples_remaining_ms = samples_sent_to_sink_ms - previous_play_session_duration_ms;
-                printf("[player] so %ld ms of time are still played by sink\n", samples_remaining_ms);
+                fprintf(stderr,"[player] so %ld ms of time are still played by sink\n", samples_remaining_ms);
                 samples_sent_to_sink = 0;
                 previous_play_state = l_play_started;
                 // i don't know why
                 int pa_drain_error;
                 if (pa_simple_drain(m_pa_simple, &pa_drain_error) < 0)
                 {
-                    printf( "[player] pa_simple_drain() failed: %s\n", pa_strerror(pa_drain_error));
+                    fprintf(stderr, "[player] pa_simple_drain() failed: %s\n", pa_strerror(pa_drain_error));
                 }
                 // so sleep before doing anything;
                 std::this_thread::sleep_for(std::chrono::milliseconds(samples_remaining_ms));
@@ -152,14 +152,14 @@ void Player::play_always()
         {
             if (previous_play_state != l_play_started)
             {
-                printf("[player] just started, with %ld samples sent \n", samples_sent_to_sink);
+                fprintf(stderr,"[player] just started, with %ld samples sent \n", samples_sent_to_sink);
             }
             previous_play_state = l_play_started;
         }
         int maybe_changed_rubberband_flag_options = m_rubberband_flag_options.load();
         if (maybe_changed_rubberband_flag_options != rubberband_flag_options)
         {
-            printf("[player] saw changed option\n");
+            fprintf(stderr,"[player] saw changed option\n");
             rubberBandStretcher->setTransientsOption(maybe_changed_rubberband_flag_options);
             rubberBandStretcher->setDetectorOption(maybe_changed_rubberband_flag_options);
             rubberBandStretcher->setPhaseOption(maybe_changed_rubberband_flag_options);
@@ -216,7 +216,7 @@ void Player::play_always()
         int retrieve_from_rubberband_size = std::min((int)rubberband_output_block_size, available);
         if (retrieve_from_rubberband_size > 0)
         {
-            // printf("retrieve %d\n",retrieve_from_rubberband_size);
+            // fprintf(stderr,"retrieve %d\n",retrieve_from_rubberband_size);
             rubberBandStretcher->retrieve(rubberband_output, retrieve_from_rubberband_size);
             {
                 // copy to pulseaudio interleaved input
@@ -239,8 +239,8 @@ void Player::play_always()
 
             if (pa_write_error < 0)
             {
-                printf("[player] pa_write_error\n");
-                printf("[player] error while writing to pa sink (%d samples) ? %d : %s\n", retrieve_from_rubberband_size, pa_write_error, pa_strerror(pa_write_error));
+                fprintf(stderr,"[player] pa_write_error\n");
+                fprintf(stderr,"[player] error while writing to pa sink (%d samples) ? %d : %s\n", retrieve_from_rubberband_size, pa_write_error, pa_strerror(pa_write_error));
             }
         }
         position += block_size;
@@ -249,17 +249,17 @@ void Player::play_always()
 
         if (block_size == 0)
         {
-            printf("[player] Should not be here ?\n");
+            fprintf(stderr,"[player] Should not be here ?\n");
             std::this_thread::sleep_for(std::chrono::milliseconds(16));
         }
     }
 
-    printf("[player] end of thread\n");
+    fprintf(stderr,"[player] end of thread\n");
 
     int pa_drain_error;
     if (pa_simple_drain(m_pa_simple, &pa_drain_error) < 0)
     {
-        printf( "[player] pa_simple_drain() failed: %s\n", pa_strerror(pa_drain_error));
+        fprintf(stderr, "[player] pa_simple_drain() failed: %s\n", pa_strerror(pa_drain_error));
     }
 
     for (int i = 0; i < channels; ++i)

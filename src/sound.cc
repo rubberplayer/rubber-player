@@ -10,17 +10,17 @@ Sound::~Sound()
 }
 void Sound::load(std::string ppath)
 {
-  printf("[libsndfile] version : %s\n", sf_version_string());
+  fprintf(stderr,"[libsndfile] version : %s\n", sf_version_string());
   path = ppath;
   sndfile = sf_open(path.c_str(), SFM_READ, &sfinfo);
   if (sndfile == NULL)
   {
-    printf("[libsndfile] error opening file %s : %s - %p\n", path.c_str(), sf_strerror(sndfile), sndfile);
+    fprintf(stderr,"[libsndfile] error opening file %s : %s - %p\n", path.c_str(), sf_strerror(sndfile), sndfile);
   }
   else
   {
-    printf("[libsndfile] file opened ok %s : %p\n", path.c_str(), sndfile);
-    printf("[libsndfile] SF_INFO :\n-frames: %ld\n-samplerate %d\n-channels %d\n-format %b\n-sections %d\n-seekable %d\n",
+    fprintf(stderr,"[libsndfile] file opened ok %s : %p\n", path.c_str(), sndfile);
+    fprintf(stderr,"[libsndfile] SF_INFO :\n-frames: %ld\n-samplerate %d\n-channels %d\n-format %b\n-sections %d\n-seekable %d\n",
            sfinfo.frames, sfinfo.samplerate, sfinfo.channels, sfinfo.format, sfinfo.sections, sfinfo.seekable);
 
     int samples = sfinfo.frames * sfinfo.channels;

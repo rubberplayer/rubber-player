@@ -217,17 +217,17 @@ bool RubberBandOptionsWindow::changes_needs_restart(int from, int to)
         bool option_changed = (from & mask) != (to & mask);
         if (option_changed)
         {
-            printf("[rubberband-option-window] changed : %s\n", p_option->m_name.c_str());
+            fprintf(stderr,"[rubberband-option-window] changed : %s\n", p_option->m_name.c_str());
             if (p_option->needs_restart(engine_revision))
             {
-                printf("[rubberband-option-window]  needs restart\n");
+                fprintf(stderr,"[rubberband-option-window]  needs restart\n");
                 needs_restart = true;
                 break;
             }
         }
         else
         {
-            // printf("UNchanged : %s\n",p_option->m_name.c_str());
+            // fprintf(stderr,"UNchanged : %s\n",p_option->m_name.c_str());
         }
     }
     return needs_restart;

@@ -10,12 +10,12 @@ void SelectionDB::open_database()
     rc = sqlite3_open(get_database_path().c_str(), &db);
     if (rc)
     {
-        printf("[db] Can't open database: %s\n", sqlite3_errmsg(db));
+        fprintf(stderr,"[db] Can't open database: %s\n", sqlite3_errmsg(db));
     }
     else
     {
         opened = true;
-        printf("[db] Opened database successfully\n");
+        fprintf(stderr,"[db] Opened database successfully\n");
     }
 }
 
@@ -24,9 +24,9 @@ static int create_tables_callback(void *NotUsed, int argc, char **argv, char **a
     int i;
     for (i = 0; i < argc; i++)
     {
-        printf("[db] %s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+        fprintf(stderr,"[db] %s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
     }
-    printf("[db] \n");
+    fprintf(stderr,"[db] \n");
     return 0;
 }
 void SelectionDB::create_tables()
@@ -50,13 +50,13 @@ void SelectionDB::create_tables()
 
     if (rc != SQLITE_OK)
     {
-        printf("[db] SQL error: %d %s\n", rc, zErrMsg);
+        fprintf(stderr,"[db] SQL error: %d %s\n", rc, zErrMsg);
         sqlite3_free(zErrMsg);
     }
     else
     {
         tables_created = true;
-        fprintf(stdout, "Table created successfully\n");
+        fprintf(stderr, "Table created successfully\n");
     }
 }
 void SelectionDB::start()
@@ -74,7 +74,7 @@ bool SelectionDB::insert_selection(std::string path, long frame_start, long fram
 
     auto sql = "INSERT INTO SELECTIONS (SOUND,FRAME_START,FRAME_END,LABEL) VALUES (?,?,?,?);";
 
-    printf("[db] try to insert %s, %ld, %ld, %s\n", path.c_str(), frame_start, frame_end, label.c_str());
+    fprintf(stderr,"[db] try to insert %s, %ld, %ld, %s\n", path.c_str(), frame_start, frame_end, label.c_str());
     sqlite3_stmt *stmt;
     const char *pzTail = NULL;
 
@@ -88,19 +88,19 @@ bool SelectionDB::insert_selection(std::string path, long frame_start, long fram
     int retVal = sqlite3_step(stmt);
     if (retVal != SQLITE_DONE)
     {
-        printf("[db] Commit Failed! %d\n", retVal);
+        fprintf(stderr,"[db] Commit Failed! %d\n", retVal);
         return false;
     }
     rc = sqlite3_finalize(stmt);
     if (rc != SQLITE_OK)
     {
-        printf("[db] SQL error finalize: %s\n", zErrMsg);
+        fprintf(stderr,"[db] SQL error finalize: %s\n", zErrMsg);
         sqlite3_free(zErrMsg);
         return false;
     }
     else
     {
-        fprintf(stdout, "Records created successfully\n");
+        fprintf(stderr, "Records created successfully\n");
         return true;
     }
 }
@@ -108,7 +108,7 @@ bool SelectionDB::insert_selection(std::string path, long frame_start, long fram
 // static int callback(void *data, int argc, char **argv, char **azColName)
 // {
 //     int i;
-//     printf("[db] %s: ", (const char *)data);
+//     fprintf(stderr,"[db] %s: ", (const char *)data);
 //     std::vector<std::vector<std::string>> row;
 //     for (i = 0; i < argc; i++)
 //     {
@@ -123,11 +123,11 @@ bool SelectionDB::insert_selection(std::string path, long frame_start, long fram
 //             col.push_back("");
 //         }
 //         row.push_back(col);
-//         printf("[db] %s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+//         fprintf(stderr,"[db] %s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
 //     }
 //     std::vector<std::vector<std::vector<std::string>>> *rows = static_cast<std::vector<std::vector<std::vector<std::string>>> *>(data);
 //     rows->push_back(row);
-//     printf("[db] \n");
+//     fprintf(stderr,"[db] \n");
 //     return 0;
 // }
 
@@ -149,7 +149,7 @@ std::vector<std::tuple<std::string, long, long, std::string>> *SelectionDB::load
 
     if (rc != SQLITE_OK)
     {
-        printf("[db] SQL error: %s\n", sqlite3_errmsg(db));
+        fprintf(stderr,"[db] SQL error: %s\n", sqlite3_errmsg(db));
         return rows;
     }
     rc = sqlite3_step(stmt);
@@ -179,14 +179,14 @@ bool SelectionDB::remove_selection(std::string path, long frame_start, long fram
 
     auto sql = "DELETE FROM SELECTIONS WHERE SOUND = ? AND FRAME_START = ? AND FRAME_END = ?;";
 
-    printf("[db] try to remove %s, %ld, %ld\n", path.c_str(), frame_start, frame_end);
+    fprintf(stderr,"[db] try to remove %s, %ld, %ld\n", path.c_str(), frame_start, frame_end);
     sqlite3_stmt *stmt;
     const char *pzTail = NULL;
 
     rc = sqlite3_prepare(db, sql, -1, &stmt, &pzTail);
     if (rc != SQLITE_OK)
     {
-        printf("[db] Error preparing delete statement! %d\n", rc);
+        fprintf(stderr,"[db] Error preparing delete statement! %d\n", rc);
     }
 
     sqlite3_bind_text(stmt, 1, path.c_str(), path.size(), 0);
@@ -196,19 +196,19 @@ bool SelectionDB::remove_selection(std::string path, long frame_start, long fram
     int retVal = sqlite3_step(stmt);
     if (retVal != SQLITE_DONE)
     {
-        printf("[db] Commit Failed! %d\n", retVal);
+        fprintf(stderr,"[db] Commit Failed! %d\n", retVal);
         return false;
     }
     rc = sqlite3_finalize(stmt);
     if (rc != SQLITE_OK)
     {
-        printf("[db] SQL error finalize: %s\n", zErrMsg);
+        fprintf(stderr,"[db] SQL error finalize: %s\n", zErrMsg);
         sqlite3_free(zErrMsg);
         return false;
     }
     else
     {
-        fprintf(stdout, "Records deleted successfully\n");
+        fprintf(stderr,"[db] Records deleted successfully\n");
         return true;
     }
 }
