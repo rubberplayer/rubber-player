@@ -1,12 +1,11 @@
 #include "./selections.h"
 
-IconContextLabel::IconContextLabel(const Glib::ustring &left_timecode, const Glib::ustring &right_timecode, const Glib::ustring &duration_timecode, long start, long end)
+IconContextLabel::IconContextLabel(long start, long end, const Glib::ustring &label)
 {
     m_selection_start_frame = start;
     m_selection_end_frame = end;
-
     append(m_label);
-    m_label.set_text(left_timecode + " to " + right_timecode);
+    m_label.set_text(label);
     m_label.set_hexpand();
     m_label.set_halign(Gtk::Align::START);
 }
@@ -34,17 +33,10 @@ void SelectionsListBox::on_context_list_selected_rows_changed()
     auto rowchild = row->get_child();
     IconContextLabel *label = dynamic_cast<IconContextLabel *>(rowchild);
 
-    if ((m_p_Waveform != NULL) && (label != NULL)) {
-        m_p_Waveform->set_selection_bounds(label->m_selection_start_frame,label->m_selection_end_frame);     
+    if ((m_p_Waveform != NULL) && (label != NULL))
+    {
+        m_p_Waveform->set_selection_bounds(label->m_selection_start_frame, label->m_selection_end_frame);
     }
-// 
-//     if (label)
-//     {
-//         // m_current_context_id = label->get_id();
-//         //  filter_changed();
-//     }
-//     else
-//         std::cout << "on_context_list_selected_rows_changed(): Unexpected child type." << std::endl;
 }
 void SelectionsListBox::on_mouse_enter(double x, double y)
 {
@@ -62,26 +54,42 @@ void SelectionsListBox::remove_selected()
 
     remove(*row);
 }
-void SelectionsListBox::add_context(const Glib::ustring &left_timecode, const Glib::ustring &right_timecode, const Glib::ustring &duration_timecode, long start, long end)
+std::string SelectionsListBox::add_context(long start, long end, std::string label)
 {
-
-    IconContextLabel *row = Gtk::make_managed<IconContextLabel>(left_timecode, right_timecode, duration_timecode, start, end);
+    IconContextLabel *row = Gtk::make_managed<IconContextLabel>(start, end, label);
     row->set_margin(1);
     append(*row);
 
     // Set the tooltip on the list box row.
     auto listboxrow = row->get_parent();
-    listboxrow->set_tooltip_text(duration_timecode);
+    //    listboxrow->set_tooltip_text(duration_timecode);
 
-    //auto m_Mousemotion = Gtk::EventControllerMotion::create();
-    //add_controller(m_Mousemotion);
-    row->activate()        ;
-
-    
-    
-    // m_Mousemotion->signal_enter().connect(sigc::mem_fun(*this, &SelectionsListBox::on_mouse_enter));
-    // m_Mousemotion->signal_leave().connect(sigc::mem_fun(*this, &SelectionsListBox::on_mouse_leave));
+    // auto m_Mousemotion = Gtk::EventControllerMotion::create();
+    // add_controller(m_Mousemotion);
+    row->activate();
+    return label;
 }
-void SelectionsListBox::set_waveform(Waveform * p_waveform){
+
+std::string SelectionsListBox::add_context(long start, long end, const Glib::ustring &left_timecode, const Glib::ustring &right_timecode)
+{
+    std::string label = left_timecode + " to " + right_timecode;
+    return add_context(start, end, label);
+}
+std::string SelectionsListBox::add_context(long start, long end, Sound *sound)
+{
+    long selection_left_frame = std::min(start, end);
+    long selection_right_frame = std::max(start, end);
+
+    double selection_left_seconds = sound->get_second_at_frame(selection_left_frame);
+    double selection_right_seconds = sound->get_second_at_frame(selection_right_frame);
+    double selection_duration_seconds = sound->get_second_at_frame(selection_right_frame - selection_left_frame);
+
+    auto left_timecode = Waveform::regular_timecode_display(selection_left_seconds);
+    auto right_timecode = Waveform::regular_timecode_display(selection_right_seconds);
+
+    return add_context(start, end, left_timecode, right_timecode);
+}
+void SelectionsListBox::set_waveform(Waveform *p_waveform)
+{
     m_p_Waveform = p_waveform;
 }

@@ -27,8 +27,8 @@ public:
     long visible_start;
     long visible_end;
 
-    Sound * m_sound;
-    void set_sound(Sound * sound);
+    Sound *m_sound;
+    void set_sound(Sound *sound);
 
     void draw_sound();
     void draw_scale();
@@ -72,12 +72,13 @@ public:
         ScaleUnit(double period_s, double display_low_bound_px, double display_height_px, std::string name, double name_period_s);
     };
     std::list<ScaleUnit> m_scale_units;
-    std::string regular_timecode_display(double seconds) const;
+
+    static std::string regular_timecode_display(double seconds);
 
     // bool has_selection;
     long selection_start;
     long selection_end;
-    void set_selection_bounds(int _selection_start, int _selection_end);    
+    void set_selection_bounds(int _selection_start, int _selection_end);
     long get_selection_start_frame();
     long get_selection_end_frame();
     long get_frame_number_at(double offset_x);

@@ -71,7 +71,7 @@ std::string Waveform::ScaleUnit::duration_display_string(double seconds) const
     //
     // return "super";
 }
-std::string Waveform::regular_timecode_display(double seconds) const
+std::string Waveform::regular_timecode_display(double seconds)
 {
     int d_hours = std::floor(seconds / 3600.0);
     seconds -= (double)d_hours * 3600;
@@ -114,7 +114,7 @@ Waveform::Waveform()
     m_selection_surface_dirty = true;
     m_position_surface_dirty = true;
     m_text_surface_dirty = true;
-    
+
     selection_start = 0;
     selection_end = 0;
 

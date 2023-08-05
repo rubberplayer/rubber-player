@@ -465,20 +465,8 @@ void MainWindow::on_button_selections_list_add()
 
   long selection_start_frame = m_Waveform.get_selection_start_frame();
   long selection_end_frame = m_Waveform.get_selection_end_frame();
-
-  long selection_left_frame = std::min(selection_start_frame, selection_end_frame);
-  long selection_right_frame = std::max(selection_start_frame, selection_end_frame);
-
-  double selection_left_seconds = sound.get_second_at_frame(selection_left_frame);
-  double selection_right_seconds = sound.get_second_at_frame(selection_right_frame);
-  double selection_duration_seconds = sound.get_second_at_frame(selection_right_frame - selection_left_frame);
-
-  auto left_time_code = m_Waveform.regular_timecode_display(selection_left_seconds);
-  auto right_time_code = m_Waveform.regular_timecode_display(selection_right_seconds);
-  auto duration_time_code = m_Waveform.regular_timecode_display(selection_duration_seconds);
-
-  m_SelectionsListBox.add_context(left_time_code, right_time_code, duration_time_code, selection_start_frame, selection_end_frame);
-  m_p_selection_db->insert_selection(sound.path, selection_start_frame, selection_end_frame, "a comment");
+  std::string label = m_SelectionsListBox.add_context(selection_start_frame, selection_end_frame, &sound);
+  m_p_selection_db->insert_selection(sound.path, selection_start_frame, selection_end_frame, label);
 }
 
 void MainWindow::on_button_play_clicked()
@@ -501,7 +489,6 @@ void MainWindow::load_sound(std::string path)
   m_Waveform.set_sound(NULL);
   player.stop_playing_thread();
   printf("load sound a filename path %s\n", path.c_str());
-  // sound.load("/home/vivien/Bureau/redhouse-clip-mono.flac");
   sound.load(path);
   if (sound.is_loaded())
   {
@@ -520,19 +507,7 @@ void MainWindow::load_sound(std::string path)
                 << selection_end_frame << " "
                 << label << " "
                 << std::endl;
-
-      long selection_left_frame = std::min(selection_start_frame, selection_end_frame);
-      long selection_right_frame = std::max(selection_start_frame, selection_end_frame);
-
-      double selection_left_seconds = sound.get_second_at_frame(selection_left_frame);
-      double selection_right_seconds = sound.get_second_at_frame(selection_right_frame);
-      double selection_duration_seconds = sound.get_second_at_frame(selection_right_frame - selection_left_frame);
-
-      auto left_time_code = m_Waveform.regular_timecode_display(selection_left_seconds);
-      auto right_time_code = m_Waveform.regular_timecode_display(selection_right_seconds);
-      auto duration_time_code = m_Waveform.regular_timecode_display(selection_duration_seconds);
-
-      m_SelectionsListBox.add_context(left_time_code, right_time_code, duration_time_code, selection_start_frame, selection_end_frame);
+      m_SelectionsListBox.add_context(selection_start_frame, selection_end_frame, label);
     }
   }
   else
