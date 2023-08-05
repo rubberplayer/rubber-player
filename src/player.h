@@ -42,6 +42,7 @@ public:
   void set_sound(Sound *sound);
   Sound *m_sound;
 
+  bool is_playing();
   
 
 private:

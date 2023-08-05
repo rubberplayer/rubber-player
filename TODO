@@ -12,4 +12,5 @@
 - warnings : "will be initialized after"
 - ? icons : zoom-fit-best",    "zoom-in",    "zoom-original",   "zoom-out",
 [x] selection db : delete / code duplication
-- save db to ~/.local/... xdg dir
+[x] save db to ~/.local/... xdg dir
+- shortcut window https://docs.gtk.org/gtk4/class.ShortcutsWindow.html

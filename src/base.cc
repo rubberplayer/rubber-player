@@ -64,7 +64,7 @@ public:
   }
 };
 
-class MainWindow : public Gtk::Window
+class MainWindow : public Gtk::ApplicationWindow
 {
 public:
   MainWindow();
@@ -164,6 +164,7 @@ public:
   void on_preferences();
   void on_file_quit();
   void on_about();
+  void on_not_implemented();
 };
 /*
 void MainWindow::set_selection_bounds(long selection_start, long selection_end)
@@ -193,6 +194,12 @@ void MainWindow::create_actions()
   refActions->add_action("preferences", sigc::mem_fun(*this, &MainWindow::on_preferences));
   refActions->add_action("about", sigc::mem_fun(*this, &MainWindow::on_about));
   refActions->add_action("quit", sigc::mem_fun(*this, &MainWindow::on_file_quit));
+  refActions->add_action("open", sigc::mem_fun(*this, &MainWindow::on_button_open_clicked));
+  refActions->add_action("toggle-selections-panel", sigc::mem_fun(*this, &MainWindow::toggle_selections_list_visibility));
+  refActions->add_action("selections-list-add", sigc::mem_fun(*this, &MainWindow::on_button_selections_list_add));
+  refActions->add_action("selections-list-remove-selected", sigc::mem_fun(*this, &MainWindow::on_button_selections_list_remove));
+  refActions->add_action("toggle-play", sigc::mem_fun(*this, &MainWindow::on_button_play_clicked));
+
   insert_action_group("win", refActions);
 }
 std::shared_ptr<Gio::Menu> MainWindow::create_main_menu()
@@ -248,6 +255,10 @@ std::shared_ptr<Gio::Menu> MainWindow::create_main_menu()
   //
   return win_menu;
 }
+void MainWindow::on_not_implemented()
+{
+  std::cout << "The selected menu item is not implemented." << std::endl;
+}
 
 MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
                            m_VBox_sound(Gtk::Orientation::VERTICAL, 8),
@@ -259,6 +270,45 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
 {
   set_title(APPLICATION_NAME);
   set_default_size(800, 400);
+  printf("id:%d\n", get_id());
+
+  // auto refActions = Gio::SimpleActionGroup::create();
+  //  refActions->add_action("quit", sigc::mem_fun(*this, &Example_Builder::on_file_quit));
+  //  refActions->add_action("about", sigc::mem_fun(*this, &Example_Builder::on_help_about));
+  //  refActions->add_action("help", sigc::mem_fun(*this, &Example_Builder::on_help_help));
+  // refActions->add_action("new", sigc::mem_fun(*this, &Example_Builder::on_not_implemented));
+  // refActions->add_action("open", sigc::mem_fun(*this, &MainWindow::on_not_implemented));
+  //  refActions->add_action("save", sigc::mem_fun(*this, &Example_Builder::on_not_implemented));
+  //  refActions->add_action("save-as", sigc::mem_fun(*this, &Example_Builder::on_not_implemented));
+  //  refActions->add_action("copy", sigc::mem_fun(*this, &Example_Builder::on_not_implemented));
+  //  refActions->add_action("cut", sigc::mem_fun(*this, &Example_Builder::on_not_implemented));
+  //  refActions->add_action("paste", sigc::mem_fun(*this, &Example_Builder::on_not_implemented));
+  // insert_action_group("win", refActions);
+
+  auto controller = Gtk::ShortcutController::create();
+  controller->set_scope(Gtk::ShortcutScope::GLOBAL);
+  add_controller(controller);
+
+  //  controller->add_shortcut(Gtk::Shortcut::create(
+  //    Gtk::KeyvalTrigger::create(GDK_KEY_n, Gdk::ModifierType::CONTROL_MASK),
+  //    Gtk::NamedAction::create("win.new")));
+
+  // https://developer.gnome.org/hig/reference/keyboard.html
+  controller->add_shortcut(Gtk::Shortcut::create(
+      Gtk::KeyvalTrigger::create(GDK_KEY_o, Gdk::ModifierType::CONTROL_MASK),
+      Gtk::NamedAction::create("win.open")));
+
+  controller->add_shortcut(Gtk::Shortcut::create(
+      Gtk::KeyvalTrigger::create(GDK_KEY_b, Gdk::ModifierType::CONTROL_MASK),
+      Gtk::NamedAction::create("win.toggle-selections-panel")));
+
+  controller->add_shortcut(Gtk::Shortcut::create(
+      Gtk::KeyvalTrigger::create(GDK_KEY_comma, Gdk::ModifierType::CONTROL_MASK),
+      Gtk::NamedAction::create("win.preferences")));
+
+  controller->add_shortcut(Gtk::Shortcut::create(
+      Gtk::KeyvalTrigger::create(GDK_KEY_d, Gdk::ModifierType::CONTROL_MASK),
+      Gtk::NamedAction::create("win.selections-list-add")));
 
   m_p_selection_db = new SelectionDB();
   m_p_selection_db->start();
@@ -270,6 +320,7 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
 
   // open file button
   m_HeaderBar.pack_start(m_Button_open);
+  m_Button_open.set_action_name("win.open");
 
   // m_HeaderBar.pack_start(m_PopoverMenuBar_open_recent);
   // m_PopoverMenuBar_open_recent.set_icon_name("open-menu-symbolic");
@@ -293,12 +344,12 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
 
   m_HeaderBar.pack_end(m_ToggleButton_selections_shown);
   m_ToggleButton_selections_shown.set_label("show selections");
-  m_ToggleButton_selections_shown.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::toggle_selections_list_visibility));
+  m_ToggleButton_selections_shown.set_action_name("win.toggle-selections-panel");
 
   // preferences button
   m_HeaderBar.pack_end(m_Button_preferences);
   m_Button_preferences.set_icon_name("gtk-preferences");
-  m_Button_preferences.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_preferences));
+  m_Button_preferences.set_action_name("win.preferences");
 
   if (USE_HEADERBAR_TITLEBAR)
   {
@@ -323,7 +374,7 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
 
   m_HBox1.append(m_VBox_selections);
   m_VBox_selections.set_hexpand(false);
-
+  m_VBox_selections.set_visible(false);
   m_VBox_selections.set_orientation(Gtk::Orientation::VERTICAL);
 
   m_VBox_selections.append(m_HBox_selection_buttons);
@@ -338,25 +389,25 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
   m_HBox_selection_buttons.append(m_Button_add_selection);
   m_Button_add_selection.set_icon_name("list-add");
   m_Button_add_selection.set_has_frame(false);
-  m_Button_add_selection.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_selections_list_add));
+  m_Button_add_selection.set_action_name("win.selections-list-add");
 
   m_HBox_selection_buttons.append(m_Button_remove_selection);
   m_Button_remove_selection.set_icon_name("list-remove");
   m_Button_remove_selection.set_has_frame(false);
-  m_Button_remove_selection.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_selections_list_remove));
+  m_Button_remove_selection.set_action_name("win.selections-list-remove-selected");
 
   m_VBox_selections.append(m_ScrolledWindow_selections);
   m_ScrolledWindow_selections.set_policy(Gtk::PolicyType::AUTOMATIC, Gtk::PolicyType::AUTOMATIC);
   m_ScrolledWindow_selections.set_child(m_SelectionsListBox);
   m_SelectionsListBox.set_waveform(&m_Waveform);
-  //m_SelectionsListBox.set_db(m_p_selection_db);
   m_ScrolledWindow_selections.set_expand();
 
   m_HBox1.append(m_Separator);
   m_Separator.set_orientation(Gtk::Orientation::VERTICAL);
   m_Separator.set_margin(8);
+  m_Separator.set_visible(false);
 
-  toggle_selections_list_visibility();
+  // toggle_selections_list_visibility();
 
   // right part : sound + speed + play
 
@@ -416,11 +467,8 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
 
   // play button
   m_VBox_sound.append(m_Button_play);
-  m_Button_play.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_play_clicked));
-
-  m_Button_open.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_open_clicked));
-  // m_Button_load.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_button_load_clicked));
-
+  m_Button_play.set_action_name("win.toggle-play");
+  
   // open file dialog
   m_Dialog_open_audio_file = Gtk::FileChooserNative::create("Please choose an audio file",
                                                             *this,
@@ -442,9 +490,11 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
 }
 void MainWindow::toggle_selections_list_visibility()
 {
-  bool visible = m_ToggleButton_selections_shown.get_active();
-  m_VBox_selections.set_visible(visible);
-  m_Separator.set_visible(visible);
+  bool visible = m_VBox_selections.is_visible();
+  // bool visible = m_ToggleButton_selections_shown.get_active();
+  m_ToggleButton_selections_shown.set_active(!visible);
+  m_VBox_selections.set_visible(!visible);
+  m_Separator.set_visible(!visible);
 }
 void MainWindow::on_button_selections_list_remove()
 {
@@ -474,14 +524,17 @@ void MainWindow::on_time_ratio_value_changed()
 
 void MainWindow::on_button_play_clicked()
 {
-  bool active = m_Button_play.get_active();
+  bool active = player.is_playing();
+  //bool active = m_Button_play.get_active();
   if (active)
   {
-    player.start_playing();
+    m_Button_play.set_active(false);
+    player.stop_playing();
   }
   else
   {
-    player.stop_playing();
+    m_Button_play.set_active(true);
+    player.start_playing();
   }
 }
 
@@ -587,9 +640,9 @@ void MainWindow::on_open_audio_file_dialog_response(int response_id, Glib::RefPt
 //   std::ifstream people_file("./people.json", std::ifstream::binary);
 //   Json::Value people;
 //   people_file >> people;
-// 
+//
 //   std::cout << people << std::endl; // This will print the entire json object.
-// 
+//
 //   const Json::Value selections = people["selections"];
 //   std::cout << "size:" << selections.size() << std::endl;
 //   for (unsigned int index = 0; index < selections.size(); ++index)
@@ -598,7 +651,7 @@ void MainWindow::on_open_audio_file_dialog_response(int response_id, Glib::RefPt
 //     std::cout << selections[index]["frame_end"].asLargestInt() << std::endl;
 //   }
 // }
-// 
+//
 // void sqlite_test()
 // {
 //   SelectionDB *selectionDb = new SelectionDB();
@@ -606,7 +659,7 @@ void MainWindow::on_open_audio_file_dialog_response(int response_id, Glib::RefPt
 //   bool done = selectionDb->insert_selection("/path/to/sound3.wav", 26666, 29999, "xa comment");
 //   std::cout << "done" << done << std::endl;
 //   auto rows = selectionDb->load_sound_selections("/path/to/sound3.wav");
-// 
+//
 //   for (auto row : (*rows))
 //   {
 //     std::string path = std::get<0>(row);
@@ -624,6 +677,6 @@ int main(int argc, char *argv[])
 {
   // json_test();
   //  sqlite_test();
-  auto app = Gtk::Application::create(); //"org.gtkmm.examples.base");
+  auto app = Gtk::Application::create("org.guimbarde.rubber-player"); //"org.gtkmm.examples.base");
   return app->make_window_and_run<MainWindow>(argc, argv);
 }
