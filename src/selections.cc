@@ -47,17 +47,23 @@ void SelectionsListBox::on_mouse_leave()
 {
     printf("leave \n");
 }
-IconContextLabel* SelectionsListBox::remove_selected()
+IconContextLabel *SelectionsListBox::remove_selected()
 {
     auto row = get_selected_row();
     if (!row)
         return NULL;
 
-    
     auto rowchild = row->get_child();
     IconContextLabel *label = dynamic_cast<IconContextLabel *>(rowchild);
     remove(*row);
     return label;
+}
+void SelectionsListBox::reset()
+{
+    while (get_row_at_index(0) != NULL){
+        auto first_row = get_row_at_index(0);        
+        remove(*first_row);
+    }
 }
 std::string SelectionsListBox::add_context(long start, long end, std::string label)
 {
@@ -66,7 +72,7 @@ std::string SelectionsListBox::add_context(long start, long end, std::string lab
     append(*row);
 
     // Set the tooltip on the list box row.
-    //auto listboxrow = row->get_parent();
+    // auto listboxrow = row->get_parent();
     //    listboxrow->set_tooltip_text(duration_timecode);
 
     // auto m_Mousemotion = Gtk::EventControllerMotion::create();
@@ -77,7 +83,7 @@ std::string SelectionsListBox::add_context(long start, long end, std::string lab
 
 std::string SelectionsListBox::add_context(long start, long end, const Glib::ustring &left_timecode, const Glib::ustring &right_timecode)
 {
-    std::string label = left_timecode + " to " + right_timecode;        
+    std::string label = left_timecode + " to " + right_timecode;
     return add_context(start, end, label);
 }
 std::string SelectionsListBox::add_context(long start, long end, Sound *sound)

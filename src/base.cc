@@ -500,7 +500,7 @@ void MainWindow::load_sound(std::string path)
   {
     m_Waveform.set_sound(&sound);
     player.set_sound(&sound);
-
+    m_SelectionsListBox.reset();
     auto rows = m_p_selection_db->load_sound_selections(path);
     for (auto row : (*rows))
     {
@@ -508,11 +508,11 @@ void MainWindow::load_sound(std::string path)
       long selection_start_frame = std::get<1>(row);
       long selection_end_frame = std::get<2>(row);
       std::string label = std::get<3>(row);
-      std::cout << path << " "
-                << selection_start_frame << " "
-                << selection_end_frame << " "
-                << label << " "
-                << std::endl;
+      // std::cout << path << " "
+      //           << selection_start_frame << " "
+      //           << selection_end_frame << " "
+      //           << label << " "
+      //           << std::endl;
       m_SelectionsListBox.add_context(selection_start_frame, selection_end_frame, label);
     }
   }

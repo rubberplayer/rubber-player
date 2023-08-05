@@ -22,6 +22,7 @@ public:
     std::string add_context(long start, long end, std::string label);
     std::string add_context(long start, long end, const Glib::ustring &left_timecode, const Glib::ustring &right_timecode);
     IconContextLabel* remove_selected();
+    void reset();
     void set_waveform(Waveform *p_waveform);
     // void set_db(SelectionDB *p_selection_db);
 
