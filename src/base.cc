@@ -448,14 +448,9 @@ void MainWindow::toggle_selections_list_visibility()
   m_VBox_selections.set_visible(visible);
   m_Separator.set_visible(visible);
 }
-void MainWindow::on_time_ratio_value_changed()
-{
-  double value = m_time_ratio_range.get_value_for_display(m_Scale_time_ratio.get_value());
-  m_Entry_time_ratio.get_buffer()->set_text(std::to_string(value));
-  player.set_time_ratio(value);
-}
 void MainWindow::on_button_selections_list_remove()
 {
+
   m_SelectionsListBox.remove_selected();
 }
 void MainWindow::on_button_selections_list_add()
@@ -467,6 +462,13 @@ void MainWindow::on_button_selections_list_add()
   long selection_end_frame = m_Waveform.get_selection_end_frame();
   std::string label = m_SelectionsListBox.add_context(selection_start_frame, selection_end_frame, &sound);
   m_p_selection_db->insert_selection(sound.path, selection_start_frame, selection_end_frame, label);
+}
+
+void MainWindow::on_time_ratio_value_changed()
+{
+  double value = m_time_ratio_range.get_value_for_display(m_Scale_time_ratio.get_value());
+  m_Entry_time_ratio.get_buffer()->set_text(std::to_string(value));
+  player.set_time_ratio(value);
 }
 
 void MainWindow::on_button_play_clicked()
