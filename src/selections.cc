@@ -18,6 +18,7 @@ SelectionsListBox::SelectionsListBox()
     set_selection_mode(Gtk::SelectionMode::SINGLE);
     signal_selected_rows_changed().connect(sigc::mem_fun(*this, &SelectionsListBox::on_context_list_selected_rows_changed));
     m_p_Waveform = NULL;
+    // m_p_selection_db = NULL;
 }
 
 SelectionsListBox::~SelectionsListBox()
@@ -46,13 +47,17 @@ void SelectionsListBox::on_mouse_leave()
 {
     printf("leave \n");
 }
-void SelectionsListBox::remove_selected()
+IconContextLabel* SelectionsListBox::remove_selected()
 {
     auto row = get_selected_row();
     if (!row)
-        return;
+        return NULL;
 
+    
+    auto rowchild = row->get_child();
+    IconContextLabel *label = dynamic_cast<IconContextLabel *>(rowchild);
     remove(*row);
+    return label;
 }
 std::string SelectionsListBox::add_context(long start, long end, std::string label)
 {
@@ -61,7 +66,7 @@ std::string SelectionsListBox::add_context(long start, long end, std::string lab
     append(*row);
 
     // Set the tooltip on the list box row.
-    auto listboxrow = row->get_parent();
+    //auto listboxrow = row->get_parent();
     //    listboxrow->set_tooltip_text(duration_timecode);
 
     // auto m_Mousemotion = Gtk::EventControllerMotion::create();
@@ -72,7 +77,7 @@ std::string SelectionsListBox::add_context(long start, long end, std::string lab
 
 std::string SelectionsListBox::add_context(long start, long end, const Glib::ustring &left_timecode, const Glib::ustring &right_timecode)
 {
-    std::string label = left_timecode + " to " + right_timecode;
+    std::string label = left_timecode + " to " + right_timecode;        
     return add_context(start, end, label);
 }
 std::string SelectionsListBox::add_context(long start, long end, Sound *sound)
@@ -82,7 +87,6 @@ std::string SelectionsListBox::add_context(long start, long end, Sound *sound)
 
     double selection_left_seconds = sound->get_second_at_frame(selection_left_frame);
     double selection_right_seconds = sound->get_second_at_frame(selection_right_frame);
-    double selection_duration_seconds = sound->get_second_at_frame(selection_right_frame - selection_left_frame);
 
     auto left_timecode = Waveform::regular_timecode_display(selection_left_seconds);
     auto right_timecode = Waveform::regular_timecode_display(selection_right_seconds);
@@ -93,3 +97,6 @@ void SelectionsListBox::set_waveform(Waveform *p_waveform)
 {
     m_p_Waveform = p_waveform;
 }
+// void SelectionsListBox::set_db(SelectionDB *p_selection_db){
+//     m_p_selection_db = p_selection_db;
+// }

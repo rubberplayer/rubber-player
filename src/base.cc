@@ -352,6 +352,7 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
   m_ScrolledWindow_selections.set_policy(Gtk::PolicyType::AUTOMATIC, Gtk::PolicyType::AUTOMATIC);
   m_ScrolledWindow_selections.set_child(m_SelectionsListBox);
   m_SelectionsListBox.set_waveform(&m_Waveform);
+  //m_SelectionsListBox.set_db(m_p_selection_db);
   m_ScrolledWindow_selections.set_expand();
 
   m_HBox1.append(m_Separator);
@@ -450,8 +451,11 @@ void MainWindow::toggle_selections_list_visibility()
 }
 void MainWindow::on_button_selections_list_remove()
 {
-
-  m_SelectionsListBox.remove_selected();
+  auto s = m_SelectionsListBox.remove_selected();
+  if (s != NULL)
+  {
+    m_p_selection_db->remove_selection(sound.path, s->m_selection_start_frame, s->m_selection_end_frame);
+  }
 }
 void MainWindow::on_button_selections_list_add()
 {

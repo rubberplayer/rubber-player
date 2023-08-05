@@ -1,5 +1,7 @@
 #include <gtkmm.h>
 #include "./waveform.h"
+// #include "./db.h"
+
 class IconContextLabel : public Gtk::Box
 {
 public:
@@ -19,8 +21,9 @@ public:
     std::string add_context(long start, long end, Sound *sound);
     std::string add_context(long start, long end, std::string label);
     std::string add_context(long start, long end, const Glib::ustring &left_timecode, const Glib::ustring &right_timecode);
-    void remove_selected();
+    IconContextLabel* remove_selected();
     void set_waveform(Waveform *p_waveform);
+    // void set_db(SelectionDB *p_selection_db);
 
 protected:
     // Signal handlers:
@@ -28,4 +31,5 @@ protected:
     void on_mouse_enter(double x, double y);
     void on_mouse_leave();
     Waveform *m_p_Waveform;
+    // SelectionDB* m_p_selection_db;
 };
