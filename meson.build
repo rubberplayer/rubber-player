@@ -4,7 +4,6 @@ alldeps = [
     dependency('libpulse-simple'),
     dependency('sndfile'), 
     dependency('rubberband'), 
-    dependency('jsoncpp'),
     dependency('sqlite3')
 ]
 sources = [
