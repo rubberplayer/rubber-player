@@ -55,7 +55,7 @@ public:
   std::string get_value_string_for_label_display(double display_value)
   {
     return std::to_string((int)std::round(display_value));
-// 
+    //
     // double value = get_value_for_display(display_value);
     // if (value == 1)
     //   return "no change";
@@ -126,6 +126,8 @@ public:
   Gtk::Entry m_Entry_pitch_scale;
   void on_pitch_scale_value_changed();
 
+  Gtk::ToggleButton m_ToggleButton_pitch_scale_shown;
+  void toggle_pitch_scale_visibility();
   // std::shared_ptr<Gtk::RecentManager> recent_manager;
   Player player;
   Sound sound;
@@ -200,6 +202,7 @@ void MainWindow::create_actions()
   refActions->add_action("selections-list-add", sigc::mem_fun(*this, &MainWindow::on_button_selections_list_add));
   refActions->add_action("selections-list-remove-selected", sigc::mem_fun(*this, &MainWindow::on_button_selections_list_remove));
   refActions->add_action("toggle-play", sigc::mem_fun(*this, &MainWindow::on_button_play_clicked));
+  refActions->add_action("toggle-pitch-scale", sigc::mem_fun(*this, &MainWindow::toggle_pitch_scale_visibility));
 
   insert_action_group("win", refActions);
 }
@@ -329,6 +332,10 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
   m_ToggleButton_selections_shown.set_label("show selections");
   m_ToggleButton_selections_shown.set_action_name("win.toggle-selections-panel");
 
+  m_HeaderBar.pack_end(m_ToggleButton_pitch_scale_shown);
+  m_ToggleButton_pitch_scale_shown.set_label("show pitch scale");
+  m_ToggleButton_pitch_scale_shown.set_action_name("win.toggle-pitch-scale");
+
   // preferences button
   m_HeaderBar.pack_end(m_Button_preferences);
   m_Button_preferences.set_icon_name("gtk-preferences");
@@ -450,10 +457,11 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
     m_HBox_time_ratio.append(m_Entry_time_ratio);
     m_VBox_sound.append(m_HBox_time_ratio);
   }
-{
+  {
     // pitch_scale row
     m_HBox_pitch_scale.set_orientation(Gtk::Orientation::HORIZONTAL);
     m_HBox_pitch_scale.set_spacing(8);
+    m_HBox_pitch_scale.set_visible(false);
 
     // pitch_scale label
     m_Label_pitch_scale.set_text("Pitch scale");
@@ -469,17 +477,18 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
     on_pitch_scale_value_changed();
     m_Scale_pitch_scale.set_hexpand();
     m_Scale_pitch_scale.signal_value_changed().connect(sigc::mem_fun(*this, &MainWindow::on_pitch_scale_value_changed));
-    ///double marks[] = {1.0, -1.0, 2.0, 3.0, 0.0, 666.0};
-    std::vector<double> marks = {-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7};
+    /// double marks[] = {1.0, -1.0, 2.0, 3.0, 0.0, 666.0};
+    std::vector<double> marks = {-7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7};
     int i_mark = 0;
-    for ( double mark : marks){
+    for (double mark : marks)
+    {
       m_Scale_pitch_scale.add_mark(mark, Gtk::PositionType::TOP, m_pitch_scale_range.get_value_string_for_label_display(mark));
       i_mark++;
     }
     m_HBox_pitch_scale.append(m_Scale_pitch_scale);
 
     // pitch_scale image
-    m_Label_pitch_scale_img.set_text("🐢");
+    m_Label_pitch_scale_img.set_text("⑂"); // 🎵
     m_Label_pitch_scale_img.set_valign(Gtk::Align::END);
     m_Label_pitch_scale_img.set_margin_bottom(8);
     m_Label_pitch_scale_img.set_margin_start(4);
@@ -513,6 +522,12 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
   // auto gtk_builder = new Gtk::Builder();
   // std::string ui_file_path("/home/vivien/src/test-cambalache/test cambalache.ui");
   // Glib::RefPtr<Gtk::Builder> gtk_builder = Gtk::Builder::create_from_file(ui_file_path);
+}
+void MainWindow::toggle_pitch_scale_visibility()
+{
+  bool visible = m_HBox_pitch_scale.is_visible();
+  m_ToggleButton_pitch_scale_shown.set_active(!visible);
+  m_HBox_pitch_scale.set_visible(!visible);
 }
 void MainWindow::toggle_selections_list_visibility()
 {
