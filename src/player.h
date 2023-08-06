@@ -32,6 +32,7 @@ public:
   std::atomic<double> m_time_ratio;
   void set_time_ratio(double time_ratio);
 
+
   std::atomic<long> m_sound_start;
   void set_sound_start(long sound_start);
   std::atomic<long> m_sound_end;

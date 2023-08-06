@@ -35,7 +35,7 @@ public:
   {
     double value = get_value_for_display(display_value);
     if (value == 1)
-      return "unchanged";
+      return "no change";
     else if (value > 1)
       return std::to_string((int)std::round(value));
     else
@@ -43,24 +43,26 @@ public:
   }
 };
 
-class PitchRange
+class PitchScaleRange
 {
 public:
-  double display_min = -4;
-  double display_max = 2;
+  double display_min = -12;
+  double display_max = 12;
   double get_value_for_display(double display_value)
   {
-    return std::pow(2, display_value);
+    return std::pow(2, display_value / 12);
   }
   std::string get_value_string_for_label_display(double display_value)
   {
-    double value = get_value_for_display(display_value);
-    if (value == 1)
-      return "no change";
-    else if (value > 1)
-      return std::to_string((int)std::round(value));
-    else
-      return "1/" + std::to_string((int)std::round(1 / value));
+    return std::to_string((int)std::round(display_value));
+// 
+    // double value = get_value_for_display(display_value);
+    // if (value == 1)
+    //   return "no change";
+    // else if (value > 1)
+    //   return std::to_string((int)std::round(value));
+    // else
+    //   return "1/" + std::to_string((int)std::round(1 / value));
   }
 };
 
@@ -116,15 +118,14 @@ public:
   Gtk::Entry m_Entry_time_ratio;
   void on_time_ratio_value_changed();
 
-  // Gtk::Scale::SlotFormatValue m_Scale_time_ratio_format_value;
-  // char* m_Scale_time_ratio_format_value(double value);
-  /*
-    PitchRange m_pitch_range;
-    Gtk::Label m_Label_pitch;
-    Gtk::Scale m_Scale_pitch;
-    void on_pitch_value_changed();
-    Gtk::Entry m_Entry_pitch;
-  */
+  Gtk::Box m_HBox_pitch_scale;
+  PitchScaleRange m_pitch_scale_range;
+  Gtk::Label m_Label_pitch_scale;
+  Gtk::Scale m_Scale_pitch_scale;
+  Gtk::Label m_Label_pitch_scale_img;
+  Gtk::Entry m_Entry_pitch_scale;
+  void on_pitch_scale_value_changed();
+
   // std::shared_ptr<Gtk::RecentManager> recent_manager;
   Player player;
   Sound sound;
@@ -226,28 +227,11 @@ std::shared_ptr<Gio::Menu> MainWindow::create_main_menu()
   // win_menu->append_submenu("_Preferences", menu_pref);
   win_menu->append("_Preferences", "win.preferences");
 
-  /*
-    // Color submenu:
-    auto submenu_color = Gio::Menu::create();
-    submenu_color->append("_Red", "example.red");
-    submenu_color->append("_Green", "example.green");
-    submenu_color->append("_Blue", "example.blue");
-    menu_pref->append_submenu("_Color", submenu_color);
-
-    // Shape submenu:
-    auto submenu_shape = Gio::Menu::create();
-    submenu_shape->append("_Square", "example.square");
-    submenu_shape->append("_Rectangle", "example.rectangle");
-    submenu_shape->append("_Circle", "example.circle");
-    menu_pref->append_submenu("_Shape", submenu_shape);
-  */
   // Help menu:
   // auto menu_help = Gio::Menu::create();
   win_menu->append("_About", "win.about");
 
   win_menu->append("_Quit", "win.quit");
-
-  // win_menu->append_submenu("_Help", menu_help);
 
   // Add the menu to the menubar.
   // m_Menubar.set_menu_model(win_menu);
@@ -262,7 +246,6 @@ void MainWindow::on_not_implemented()
 
 MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
                            m_VBox_sound(Gtk::Orientation::VERTICAL, 8),
-                           // m_HBox_time_ratio(Gtk::Orientation::HORIZONTAL, 8),
                            m_Button_play("play", true),
                            m_Button_open("open", true)
 
@@ -425,50 +408,93 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
   m_Frame_Waveform.set_child(m_Waveform);
 
   // m_HBox_time_ratio(, 8),
-  m_HBox_time_ratio.set_orientation(Gtk::Orientation::HORIZONTAL);
-  m_HBox_time_ratio.set_spacing(8);
-
-  // time ratio label
-  m_Label_time_ratio.set_text("Time Ratio");
-  m_Label_time_ratio.set_valign(Gtk::Align::END);
-  m_Label_time_ratio.set_margin_bottom(8);
-  m_Label_time_ratio.set_margin_start(4);
-  m_HBox_time_ratio.append(m_Label_time_ratio);
-
-  // time ratio scale
-  m_Scale_time_ratio.set_draw_value(false);
-  m_Scale_time_ratio.set_range(m_time_ratio_range.display_min, m_time_ratio_range.display_max);
-  m_Scale_time_ratio.set_value(0);
-  on_time_ratio_value_changed();
-  m_Scale_time_ratio.set_hexpand();
-  m_Scale_time_ratio.signal_value_changed().connect(sigc::mem_fun(*this, &MainWindow::on_time_ratio_value_changed));
-  double marks[] = {1.0, -1.0, 2.0, 3.0, 0.0, 666.0};
-  int i_mark = 0;
-  for (;;)
   {
-    if (marks[i_mark] == 666.0)
-      break;
-    m_Scale_time_ratio.add_mark(marks[i_mark], Gtk::PositionType::TOP, m_time_ratio_range.get_value_string_for_label_display(marks[i_mark]));
-    i_mark++;
+    // time ratio row
+    m_HBox_time_ratio.set_orientation(Gtk::Orientation::HORIZONTAL);
+    m_HBox_time_ratio.set_spacing(8);
+
+    // time ratio label
+    m_Label_time_ratio.set_text("Time Ratio");
+    m_Label_time_ratio.set_valign(Gtk::Align::END);
+    m_Label_time_ratio.set_margin_bottom(8);
+    m_Label_time_ratio.set_margin_start(4);
+    m_HBox_time_ratio.append(m_Label_time_ratio);
+
+    // time ratio scale
+    m_Scale_time_ratio.set_draw_value(false);
+    m_Scale_time_ratio.set_range(m_time_ratio_range.display_min, m_time_ratio_range.display_max);
+    m_Scale_time_ratio.set_value(0);
+    on_time_ratio_value_changed();
+    m_Scale_time_ratio.set_hexpand();
+    m_Scale_time_ratio.signal_value_changed().connect(sigc::mem_fun(*this, &MainWindow::on_time_ratio_value_changed));
+    double marks[] = {1.0, -1.0, 2.0, 3.0, 0.0, 666.0};
+    int i_mark = 0;
+    for (;;)
+    {
+      if (marks[i_mark] == 666.0)
+        break;
+      m_Scale_time_ratio.add_mark(marks[i_mark], Gtk::PositionType::TOP, m_time_ratio_range.get_value_string_for_label_display(marks[i_mark]));
+      i_mark++;
+    }
+    m_HBox_time_ratio.append(m_Scale_time_ratio);
+
+    // time ratio image
+    m_Label_time_ratio_img.set_text("🐢");
+    m_Label_time_ratio_img.set_valign(Gtk::Align::END);
+    m_Label_time_ratio_img.set_margin_bottom(8);
+    m_Label_time_ratio_img.set_margin_start(4);
+    m_HBox_time_ratio.append(m_Label_time_ratio_img);
+
+    // time ratio entry
+    m_Entry_time_ratio.set_valign(Gtk::Align::END);
+    m_HBox_time_ratio.append(m_Entry_time_ratio);
+    m_VBox_sound.append(m_HBox_time_ratio);
   }
-  m_HBox_time_ratio.append(m_Scale_time_ratio);
+{
+    // pitch_scale row
+    m_HBox_pitch_scale.set_orientation(Gtk::Orientation::HORIZONTAL);
+    m_HBox_pitch_scale.set_spacing(8);
 
-  // time ratio image
-  m_Label_time_ratio_img.set_text("🐢");
-  m_Label_time_ratio_img.set_valign(Gtk::Align::END);
-  m_Label_time_ratio_img.set_margin_bottom(8);
-  m_Label_time_ratio_img.set_margin_start(4);
-  m_HBox_time_ratio.append(m_Label_time_ratio_img);
+    // pitch_scale label
+    m_Label_pitch_scale.set_text("Pitch scale");
+    m_Label_pitch_scale.set_valign(Gtk::Align::END);
+    m_Label_pitch_scale.set_margin_bottom(8);
+    m_Label_pitch_scale.set_margin_start(4);
+    m_HBox_pitch_scale.append(m_Label_pitch_scale);
 
-  // time ratio entry
-  m_Entry_time_ratio.set_valign(Gtk::Align::END);
-  m_HBox_time_ratio.append(m_Entry_time_ratio);
-  m_VBox_sound.append(m_HBox_time_ratio);
+    // pitch_scale scale
+    m_Scale_pitch_scale.set_draw_value(false);
+    m_Scale_pitch_scale.set_range(m_pitch_scale_range.display_min, m_pitch_scale_range.display_max);
+    m_Scale_pitch_scale.set_value(0);
+    on_pitch_scale_value_changed();
+    m_Scale_pitch_scale.set_hexpand();
+    m_Scale_pitch_scale.signal_value_changed().connect(sigc::mem_fun(*this, &MainWindow::on_pitch_scale_value_changed));
+    ///double marks[] = {1.0, -1.0, 2.0, 3.0, 0.0, 666.0};
+    std::vector<double> marks = {-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12};
+    int i_mark = 0;
+    for ( double mark : marks){
+      m_Scale_pitch_scale.add_mark(mark, Gtk::PositionType::TOP, m_pitch_scale_range.get_value_string_for_label_display(mark));
+      i_mark++;
+    }
+    m_HBox_pitch_scale.append(m_Scale_pitch_scale);
+
+    // pitch_scale image
+    m_Label_pitch_scale_img.set_text("🐢");
+    m_Label_pitch_scale_img.set_valign(Gtk::Align::END);
+    m_Label_pitch_scale_img.set_margin_bottom(8);
+    m_Label_pitch_scale_img.set_margin_start(4);
+    m_HBox_pitch_scale.append(m_Label_pitch_scale_img);
+
+    // pitch_scale entry
+    m_Entry_pitch_scale.set_valign(Gtk::Align::END);
+    m_HBox_pitch_scale.append(m_Entry_pitch_scale);
+    m_VBox_sound.append(m_HBox_pitch_scale);
+  }
 
   // play button
   m_VBox_sound.append(m_Button_play);
   m_Button_play.set_action_name("win.toggle-play");
-  
+
   // open file dialog
   m_Dialog_open_audio_file = Gtk::FileChooserNative::create("Please choose an audio file",
                                                             *this,
@@ -521,11 +547,17 @@ void MainWindow::on_time_ratio_value_changed()
   m_Entry_time_ratio.get_buffer()->set_text(std::to_string(value));
   player.set_time_ratio(value);
 }
+void MainWindow::on_pitch_scale_value_changed()
+{
+  double value = m_pitch_scale_range.get_value_for_display(m_Scale_pitch_scale.get_value());
+  m_Entry_pitch_scale.get_buffer()->set_text(std::to_string(value));
+  player.set_pitch_scale(value);
+}
 
 void MainWindow::on_button_play_clicked()
 {
   bool active = player.is_playing();
-  //bool active = m_Button_play.get_active();
+  // bool active = m_Button_play.get_active();
   if (active)
   {
     m_Button_play.set_active(false);
@@ -564,7 +596,9 @@ void MainWindow::load_sound(std::string path)
     show_message_dialog("Error while loading", sound.get_error_string());
   }
 }
+/*void MainWindow::on_activate(Gio::Application app){
 
+}*/
 void MainWindow::show_message_dialog(std::string m1, std::string m2)
 {
   Gtk::Window *parent = dynamic_cast<Gtk::Window *>(this);
@@ -677,6 +711,7 @@ int main(int argc, char *argv[])
 {
   // json_test();
   //  sqlite_test();
-  auto app = Gtk::Application::create("org.guimbarde.rubber-player"); //"org.gtkmm.examples.base");
+  auto app = Gtk::Application::create("org.guimbarde.rubber-player", Gio::Application::Flags::HANDLES_OPEN | Gio::Application::Flags::NON_UNIQUE);
+  // auto app = Gtk::Application::create("org.guimbarde.rubber-player");
   return app->make_window_and_run<MainWindow>(argc, argv);
 }
