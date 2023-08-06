@@ -46,8 +46,8 @@ public:
 class PitchScaleRange
 {
 public:
-  double display_min = -12;
-  double display_max = 12;
+  double display_min = -7;
+  double display_max = 7;
   double get_value_for_display(double display_value)
   {
     return std::pow(2, display_value / 12);
@@ -470,7 +470,7 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
     m_Scale_pitch_scale.set_hexpand();
     m_Scale_pitch_scale.signal_value_changed().connect(sigc::mem_fun(*this, &MainWindow::on_pitch_scale_value_changed));
     ///double marks[] = {1.0, -1.0, 2.0, 3.0, 0.0, 666.0};
-    std::vector<double> marks = {-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12};
+    std::vector<double> marks = {-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7};
     int i_mark = 0;
     for ( double mark : marks){
       m_Scale_pitch_scale.add_mark(mark, Gtk::PositionType::TOP, m_pitch_scale_range.get_value_string_for_label_display(mark));
