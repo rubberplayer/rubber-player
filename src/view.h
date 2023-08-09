@@ -48,7 +48,6 @@ public:
   std::shared_ptr<Gio::Menu> create_main_menu();
 
   Gtk::Box m_VBox0;
-
   Gtk::Box m_HBox1;
 
   Gtk::ToggleButton m_ToggleButton_selections_shown;
@@ -105,27 +104,11 @@ public:
   void on_open_audio_file_dialog_response(int response_id, Glib::RefPtr<Gtk::FileChooserNative> &m_Dialog_open_audio_file);
 
   Glib::RefPtr<Gtk::EventControllerKey> m_Keypressed;
-  // void on_key_pressed(guint keyval, int keycode, Gdk::ModifierType state);
-  // bool on_key_pressed(const Gdk::Event* event);
   bool on_key_pressed(const unsigned int a, const unsigned int b, const Gdk::ModifierType c);
-  /*
-    long m_selection_start;
-    long m_selection_end;
-    void set_selection_bounds(long selection_start, long selection_end);
-  */
   void load_sound(std::string path);
 
   bool on_button_drop_drop_data(const Glib::ValueBase &value, double, double);
 
-  // message dialog;
-  /*
-   explicit MessageDialog(const Glib::ustring& message,
-   bool use_markup = false,
-   MessageType type = MessageType::INFO,
-   ButtonsType buttons = ButtonsType::OK,
-    bool modal = false);
-   */
-  // Glib::ustring message = "error";
   Gtk::MessageDialog *m_pMessageDialog;
 
   void show_message_dialog(std::string m1, std::string m2);
@@ -137,7 +120,7 @@ public:
   void on_not_implemented();
 
   //   static MainWindow* create();
-  //   void open_file_view(const Glib::RefPtr<Gio::File>& file);
+    // void open_file_view(const Glib::RefPtr<Gio::File>& file);
 };
 
 #endif

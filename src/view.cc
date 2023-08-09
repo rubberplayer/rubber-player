@@ -352,25 +352,6 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
     // std::string ui_file_path("/home/vivien/src/test-cambalache/test cambalache.ui");
     // Glib::RefPtr<Gtk::Builder> gtk_builder = Gtk::Builder::create_from_file(ui_file_path);
 }
-void MainWindow::on_not_implemented()
-{
-    std::cout << "The selected menu item is not implemented." << std::endl;
-}
-void MainWindow::on_preferences()
-{
-    rubberband_options_window = new RubberBandOptionsWindow;
-    rubberband_options_window->set_from_rubberband_option_bits(player.get_rubberband_flag_options());
-    rubberband_options_window->show();
-    rubberband_options_window->set_player(&player);
-}
-void MainWindow::on_file_quit()
-{
-    std::cout << "TODO file quit..." << std::endl;
-}
-void MainWindow::on_about()
-{
-    std::cout << "TODO about..." << std::endl;
-}
 void MainWindow::toggle_pitch_scale_visibility()
 {
     bool visible = m_HBox_pitch_scale.is_visible();
@@ -528,6 +509,41 @@ void MainWindow::on_open_audio_file_dialog_response(int response_id, Glib::RefPt
     }
     m_Dialog_open_audio_file->hide();
 }
+void MainWindow::on_not_implemented()
+{
+    std::cout << "The selected menu item is not implemented." << std::endl;
+}
+void MainWindow::on_preferences()
+{
+    rubberband_options_window = new RubberBandOptionsWindow;
+    rubberband_options_window->set_from_rubberband_option_bits(player.get_rubberband_flag_options());
+    rubberband_options_window->show();
+    rubberband_options_window->set_player(&player);
+}
+void MainWindow::on_file_quit()
+{
+    std::cout << "TODO file quit..." << std::endl;
+}
+void MainWindow::on_about()
+{
+    std::cout << "TODO about..." << std::endl;
+}  
+//
+// MainWindow *MainWindow::create()
+// {
+//     printf("-*-*-*-*-* create\n");
+//     auto window = new MainWindow();
+//     return window;
+// }
+//
+// void MainWindow::open_file_view(const Glib::RefPtr<Gio::File> &file)
+// {
+//     printf("-*-*-*-*-* open file view\n");
+//     const Glib::ustring basename = file->get_basename();
+//     const Glib::ustring path = file->get_path();
+//     printf("-*-*-*-*-* open file view %s :: %s \n",path.c_str(),basename.c_str());
+//     load_sound(path);
+//}
 
 // #include <json/json.h>
 // #include <json/value.h>
