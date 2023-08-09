@@ -1,5 +1,12 @@
 #include "./selections.h"
 
+Selection::Selection(long selection_start_frame, long selection_end_frame, std::string sound_path, std::string label){
+    m_selection_start_frame = selection_start_frame;
+    m_selection_end_frame = selection_end_frame;
+    m_sound_path = sound_path;
+    m_label = label;
+}
+
 IconContextLabel::IconContextLabel(long start, long end, const Glib::ustring &label)
 {
     m_selection_start_frame = start;
@@ -8,8 +15,17 @@ IconContextLabel::IconContextLabel(long start, long end, const Glib::ustring &la
     m_label.set_text(label);
     m_label.set_hexpand();
     m_label.set_halign(Gtk::Align::START);
-}
 
+    append(m_entry);
+    m_entry.hide();
+
+}
+void IconContextLabel::edit(){
+    // printf("edit me %s\n",m_label.get_text().c_str());
+    // m_label.hide();
+    // m_entry.get_buffer()->set_text(m_label.get_text());
+    // m_entry.show();
+}
 // Main window.
 
 // Definition of main window methods.
@@ -41,7 +57,7 @@ void SelectionsListBox::on_context_list_selected_rows_changed()
 }
 void SelectionsListBox::on_mouse_enter(double x, double y)
 {
-}   
+}
 void SelectionsListBox::on_mouse_leave()
 {
 }
@@ -58,8 +74,9 @@ IconContextLabel *SelectionsListBox::remove_selected()
 }
 void SelectionsListBox::reset()
 {
-    while (get_row_at_index(0) != NULL){
-        auto first_row = get_row_at_index(0);        
+    while (get_row_at_index(0) != NULL)
+    {
+        auto first_row = get_row_at_index(0);
         remove(*first_row);
     }
 }
@@ -104,3 +121,15 @@ void SelectionsListBox::set_waveform(Waveform *p_waveform)
 // void SelectionsListBox::set_db(SelectionDB *p_selection_db){
 //     m_p_selection_db = p_selection_db;
 // }
+
+std::string SelectionsListBox::rename_selected()
+{
+    auto row = get_selected_row();
+    if (!row)
+        return NULL;
+
+    auto rowchild = row->get_child();
+    IconContextLabel *label = dynamic_cast<IconContextLabel *>(rowchild);
+    label->edit();
+    return "super";
+}

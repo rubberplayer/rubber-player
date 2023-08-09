@@ -34,6 +34,7 @@ void MainWindow::create_actions()
     refActions->add_action("toggle-selections-panel", sigc::mem_fun(*this, &MainWindow::toggle_selections_list_visibility));
     refActions->add_action("selections-list-add", sigc::mem_fun(*this, &MainWindow::on_button_selections_list_add));
     refActions->add_action("selections-list-remove-selected", sigc::mem_fun(*this, &MainWindow::on_button_selections_list_remove));
+    refActions->add_action("selections-list-rename", sigc::mem_fun(*this, &MainWindow::on_button_selections_list_rename));
     refActions->add_action("toggle-play", sigc::mem_fun(*this, &MainWindow::on_button_play_clicked));
     refActions->add_action("toggle-pitch-scale", sigc::mem_fun(*this, &MainWindow::toggle_pitch_scale_visibility));
 
@@ -205,6 +206,12 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
     m_Label_selections_label.set_margin_end(20 * 4);
     m_Label_selections_label.set_hexpand();
 
+    m_HBox_selection_buttons.append(m_Button_rename_selection);
+    m_Button_rename_selection.set_icon_name("text-editor");
+    m_Button_rename_selection.set_has_frame(false);
+    m_Button_rename_selection.set_action_name("win.selections-list-rename");
+    m_Button_rename_selection.set_visible(false);
+    
     m_HBox_selection_buttons.append(m_Button_add_selection);
     m_Button_add_selection.set_icon_name("list-add");
     m_Button_add_selection.set_has_frame(false);
@@ -365,6 +372,11 @@ void MainWindow::toggle_selections_list_visibility()
     m_ToggleButton_selections_shown.set_active(!visible);
     m_VBox_selections.set_visible(!visible);
     m_Separator.set_visible(!visible);
+}
+void MainWindow::on_button_selections_list_rename()
+{
+    auto s = m_SelectionsListBox.rename_selected();
+    printf("rename\n");
 }
 void MainWindow::on_button_selections_list_remove()
 {
@@ -527,7 +539,7 @@ void MainWindow::on_file_quit()
 void MainWindow::on_about()
 {
     std::cout << "TODO about..." << std::endl;
-}  
+}
 //
 // MainWindow *MainWindow::create()
 // {

@@ -62,6 +62,9 @@ public:
   void on_button_selections_list_add();
   Gtk::Button m_Button_remove_selection;
   void on_button_selections_list_remove();
+  Gtk::Button m_Button_rename_selection;
+  void on_button_selections_list_rename();
+  
 
   Gtk::Separator m_Separator;
 
