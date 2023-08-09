@@ -1,39 +1,5 @@
 #include "./view.h"
-// #include <gtkmm.h>
-// #include <iostream>
-// #include <stdio.h>
-// #include <ctime>
-// #include <cstdlib>
-// #include <regex>
-// #include "./name.h"
-// #include "./player.h"
-// #include "./sound.h"
-// #include "./waveform.h"
-// #include "./rboptions.h"
-// #include "./selections.h"
-// #include "./db.h"
-//
-// #define USE_HEADERBAR_TITLEBAR false
 
-/////////////////////////////
-
-//////////////////////////////////
-///
-/// https://docs.gtk.org/gtk4/class.FileDialog.html since 4.10
-///
-// char** GLOBAL_ARGV;
-
-//////////////////////////////////
-///
-/// https://docs.gtk.org/gtk4/class.FileDialog.html since 4.10
-///
-// char** GLOBAL_ARGV;
-//
-// class TimeRatioRange
-// {
-// public:
-//   double display_min = -2;
-//   double display_max = 4;
 double TimeRatioRange::get_value_for_display(double display_value)
 {
     return std::pow(2, display_value);
@@ -49,11 +15,6 @@ std::string TimeRatioRange::get_value_string_for_label_display(double display_va
         return "1/" + std::to_string((int)std::round(1 / value));
 }
 
-// class PitchScaleRange
-//{
-// public:
-//     double display_min = -7;
-//     double display_max = 7;
 double PitchScaleRange::get_value_for_display(double display_value)
 {
     return std::pow(2, display_value / 12);
@@ -61,38 +22,8 @@ double PitchScaleRange::get_value_for_display(double display_value)
 std::string PitchScaleRange::get_value_string_for_label_display(double display_value)
 {
     return std::to_string((int)std::round(display_value));
-    //
-    // double value = get_value_for_display(display_value);
-    // if (value == 1)
-    //   return "no change";
-    // else if (value > 1)
-    //   return std::to_string((int)std::round(value));
-    // else
-    //   return "1/" + std::to_string((int)std::round(1 / value));
 }
 
-/*
-void MainWindow::set_selection_bounds(long selection_start, long selection_end)
-{
-  m_selection_start = selection_start;
-  m_selection_end = selection_end;
-}
-*/
-void MainWindow::on_preferences()
-{
-    rubberband_options_window = new RubberBandOptionsWindow;
-    rubberband_options_window->set_from_rubberband_option_bits(player.get_rubberband_flag_options());
-    rubberband_options_window->show();
-    rubberband_options_window->set_player(&player);
-}
-void MainWindow::on_file_quit()
-{
-    std::cout << "TODO file quit..." << std::endl;
-}
-void MainWindow::on_about()
-{
-    std::cout << "TODO about..." << std::endl;
-}
 void MainWindow::create_actions()
 {
     auto refActions = Gio::SimpleActionGroup::create();
@@ -143,10 +74,6 @@ std::shared_ptr<Gio::Menu> MainWindow::create_main_menu()
     // m_HeaderBar.pack_end(m_Menubar);
     //
     return win_menu;
-}
-void MainWindow::on_not_implemented()
-{
-    std::cout << "The selected menu item is not implemented." << std::endl;
 }
 
 MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
@@ -425,6 +352,25 @@ MainWindow::MainWindow() : m_VBox0(Gtk::Orientation::VERTICAL, 8),
     // std::string ui_file_path("/home/vivien/src/test-cambalache/test cambalache.ui");
     // Glib::RefPtr<Gtk::Builder> gtk_builder = Gtk::Builder::create_from_file(ui_file_path);
 }
+void MainWindow::on_not_implemented()
+{
+    std::cout << "The selected menu item is not implemented." << std::endl;
+}
+void MainWindow::on_preferences()
+{
+    rubberband_options_window = new RubberBandOptionsWindow;
+    rubberband_options_window->set_from_rubberband_option_bits(player.get_rubberband_flag_options());
+    rubberband_options_window->show();
+    rubberband_options_window->set_player(&player);
+}
+void MainWindow::on_file_quit()
+{
+    std::cout << "TODO file quit..." << std::endl;
+}
+void MainWindow::on_about()
+{
+    std::cout << "TODO about..." << std::endl;
+}
 void MainWindow::toggle_pitch_scale_visibility()
 {
     bool visible = m_HBox_pitch_scale.is_visible();
@@ -582,22 +528,6 @@ void MainWindow::on_open_audio_file_dialog_response(int response_id, Glib::RefPt
     }
     m_Dialog_open_audio_file->hide();
 }
-//
-// MainWindow *MainWindow::create()
-// {
-//     printf("-*-*-*-*-* create\n");
-//     auto window = new MainWindow();
-//     return window;
-// }
-//
-// void MainWindow::open_file_view(const Glib::RefPtr<Gio::File> &file)
-// {
-//     printf("-*-*-*-*-* open file view\n");
-//     const Glib::ustring basename = file->get_basename();
-//     const Glib::ustring path = file->get_path();
-//     printf("-*-*-*-*-* open file view %s :: %s \n",path.c_str(),basename.c_str());
-//     load_sound(path);
-//}
 
 // #include <json/json.h>
 // #include <json/value.h>
