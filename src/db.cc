@@ -109,32 +109,6 @@ bool SelectionDB::insert_selection(std::string path, long frame_start, long fram
     }
 }
 
-// static int callback(void *data, int argc, char **argv, char **azColName)
-// {
-//     int i;
-//     fprintf(stderr,"[db] %s: ", (const char *)data);
-//     std::vector<std::vector<std::string>> row;
-//     for (i = 0; i < argc; i++)
-//     {
-//         std::vector<std::string> col;
-//         col.push_back(azColName[i]);
-//         if (argv[i])
-//         {
-//             col.push_back(argv[i]);
-//         }
-//         else
-//         {
-//             col.push_back("");
-//         }
-//         row.push_back(col);
-//         fprintf(stderr,"[db] %s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-//     }
-//     std::vector<std::vector<std::vector<std::string>>> *rows = static_cast<std::vector<std::vector<std::vector<std::string>>> *>(data);
-//     rows->push_back(row);
-//     fprintf(stderr,"[db] \n");
-//     return 0;
-// }
-
 std::vector<std::tuple<std::string, long, long, std::string>> *SelectionDB::load_sound_selections(std::string path)
 {
     std::vector<std::tuple<std::string, long, long, std::string>> *rows = new std::vector<std::tuple<std::string, long, long, std::string>>();
