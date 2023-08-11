@@ -2,7 +2,7 @@
 
 int main(int argc, char* argv[])
 {
-  auto application = ExampleApplication::create();
+  auto application = RPApplication::create();
 
   // Start the application, showing the initial window,
   // and opening extra views for any files that it is asked to open,
