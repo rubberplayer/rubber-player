@@ -9,7 +9,6 @@ alldeps = [
 sources = [
     'src/main.cc',
     'src/rpapplication.cc',
-    'src/rpapplicationwindow.cc', 
     'src/view.cc', 
     'src/db.cc',
     'src/player.cc',  
