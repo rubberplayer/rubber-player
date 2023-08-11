@@ -5,6 +5,7 @@ alldeps = [
     dependency('sndfile'), 
     dependency('rubberband'), 
     dependency('sqlite3')
+#    dependency('portaudiocpp')
 ]
 sources = [
     'src/main.cc',

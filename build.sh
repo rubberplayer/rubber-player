@@ -6,3 +6,5 @@ g++  -std=c++17 \
     `pkg-config --cflags --libs rubberband` \
     `pkg-config --cflags --libs sqlite3` \
     -o rubber-player
+
+#     `pkg-config --cflags --libs portaudiocpp` \
