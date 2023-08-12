@@ -38,6 +38,9 @@ void RPApplication::on_startup()
   //  add_action("preferences", sigc::mem_fun(*this, &ExampleApplication::on_action_preferences));
   //  add_action("quit", sigc::mem_fun(*this, &ExampleApplication::on_action_quit));
   //  set_accel_for_action("app.quit", "<Ctrl>Q");
+  auto view = new MainWindow();
+  add_window(*view);
+  view->show();
 }
 
 // void ExampleApplication::on_activate()
