@@ -29,6 +29,10 @@ Libsndfile is able to open lots of formats (wav, aif, mp3, ogg, flac) but not ev
 
 ## Compile
 
+### debian 12 packages
+
+apt install git meson libgtkmm-4.0-dev libpulse-dev libsndfile1-dev librubberband-dev libsqlite3-dev
+
 ### using a direct command
 
     `./build.sh`
