@@ -1,5 +1,5 @@
 {
-    "sound": "/home/vivien/Bureau/redhouse-mono.wav",
+    "sound": "redhouse-mono.wav",
     "selections": [
         {
             "frame_start": 48000,
